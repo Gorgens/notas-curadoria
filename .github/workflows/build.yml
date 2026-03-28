@@ -1,0 +1,35 @@
+name: Build Index
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'AEA/**'
+      - 'MAN/**'
+      - 'NAT/**'
+      - 'OPT/**'
+      - 'scripts/**'
+      - 'assets/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Generate Index
+        run: python scripts/generate.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add index.html
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update index.html"
+          git push
