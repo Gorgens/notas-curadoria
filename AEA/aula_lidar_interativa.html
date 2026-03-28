@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LiDAR · Aula Interativa</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #0f1525;
+  --bg3: #161d32;
+  --accent: #00d4aa;
+  --accent2: #5b8cff;
+  --accent3: #ff6b6b;
+  --accent4: #ffd166;
+  --text: #e8eaf6;
+  --text2: #8892b0;
+  --border: rgba(255,255,255,0.07);
+  --card: rgba(255,255,255,0.04);
+  --glow: 0 0 40px rgba(0,212,170,0.12);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  background: rgba(10,14,26,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items:center; gap:0; height:56px;
+}
+.nav-logo { font-family:'Space Mono',monospace; font-size:.85rem; color:var(--accent); margin-right:2rem; white-space:nowrap; }
+.nav-links { display:flex; gap:0; overflow-x:auto; }
+.nav-links a {
+  font-size:.78rem; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--text2); text-decoration:none; padding:.5rem .9rem;
+  transition:color .2s; white-space:nowrap;
+}
+.nav-links a:hover, .nav-links a.active { color:var(--accent); }
+
+/* ── HERO ── */
+.hero {
+  min-height:100vh; display:flex; flex-direction:column;
+  justify-content:center; align-items:center; text-align:center;
+  padding:6rem 2rem 4rem; position:relative; overflow:hidden;
+}
+.hero-bg {
+  position:absolute; inset:0; z-index:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 40%, rgba(0,212,170,.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(91,140,255,.05) 0%, transparent 60%);
+}
+.scan-lines {
+  position:absolute; inset:0; z-index:0; opacity:.03;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,.5) 3px, rgba(255,255,255,.5) 4px);
+}
+.hero-tag {
+  font-family:'Space Mono',monospace; font-size:.72rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--accent); border:1px solid rgba(0,212,170,.3);
+  padding:.35rem .9rem; border-radius:2px; margin-bottom:2rem;
+  animation: fadeUp .8s ease both;
+}
+.hero h1 {
+  font-family:'Space Mono',monospace; font-size:clamp(2.2rem,6vw,5rem);
+  font-weight:700; line-height:1.1;
+  animation: fadeUp .8s .1s ease both;
+}
+.hero h1 span { color:var(--accent); }
+.hero p {
+  max-width:560px; color:var(--text2); font-size:1.05rem; line-height:1.7;
+  margin:.2rem auto 2.5rem; animation: fadeUp .8s .2s ease both;
+}
+.hero-chips { display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center; animation: fadeUp .8s .3s ease both; }
+.chip {
+  font-size:.78rem; padding:.4rem .9rem; border-radius:100px;
+  border:1px solid var(--border); color:var(--text2); background:var(--card);
+}
+.chip.c1{border-color:rgba(0,212,170,.4);color:var(--accent);}
+.chip.c2{border-color:rgba(91,140,255,.4);color:var(--accent2);}
+.chip.c3{border-color:rgba(255,107,107,.4);color:var(--accent3);}
+.chip.c4{border-color:rgba(255,209,102,.4);color:var(--accent4);}
+
+/* ── LIDAR ANIMATION ── */
+.lidar-demo {
+  width:100%; max-width:560px; height:260px; position:relative; margin:2.5rem auto 0;
+  animation: fadeUp .8s .4s ease both;
+}
+#lidar-canvas { width:100%; height:100%; }
+
+/* ── SECTIONS ── */
+section { padding:5rem 1.5rem; max-width:1100px; margin:0 auto; }
+section.full { max-width:none; padding-left:4%; padding-right:4%; }
+
+.sec-label {
+  font-family:'Space Mono',monospace; font-size:.7rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:.8rem;
+  display:flex; align-items:center; gap:.6rem;
+}
+.sec-label::before { content:''; width:24px; height:1px; background:var(--accent); }
+.sec-title {
+  font-family:'Space Mono',monospace; font-size:clamp(1.4rem,3vw,2.2rem);
+  font-weight:700; margin-bottom:1rem; line-height:1.2;
+}
+.sec-sub { color:var(--text2); max-width:620px; line-height:1.7; margin-bottom:3rem; }
+
+/* ── CARDS GRID ── */
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem; }
+.card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:8px; padding:1.8rem;
+  transition:border-color .3s, transform .3s, box-shadow .3s;
+  cursor:default;
+}
+.card:hover { border-color:rgba(0,212,170,.3); transform:translateY(-3px); box-shadow:var(--glow); }
+.card-icon { font-size:1.8rem; margin-bottom:1rem; }
+.card h3 { font-family:'Space Mono',monospace; font-size:.95rem; margin-bottom:.6rem; }
+.card p { font-size:.9rem; color:var(--text2); line-height:1.65; }
+
+/* ── PARAMETROS CALC ── */
+.calc-panel {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:10px; padding:2rem; margin-bottom:1.5rem;
+}
+.calc-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.2rem; margin-bottom:1.5rem; }
+.input-group { display:flex; flex-direction:column; gap:.4rem; }
+.input-group label { font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--text2); font-family:'Space Mono',monospace; }
+.input-group input {
+  background:rgba(255,255,255,.06); border:1px solid var(--border);
+  border-radius:5px; padding:.6rem .9rem; color:var(--text);
+  font-family:'Space Mono',monospace; font-size:.9rem;
+  transition:border-color .2s;
+}
+.input-group input:focus { outline:none; border-color:var(--accent); }
+.calc-btn {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none; border-radius:5px; padding:.7rem 2rem;
+  color:#0a0e1a; font-family:'Space Mono',monospace; font-size:.85rem;
+  font-weight:700; cursor:pointer; transition:opacity .2s;
+}
+.calc-btn:hover { opacity:.85; }
+.results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.8rem; margin-top:1rem; }
+.result-box {
+  background:rgba(0,212,170,.06); border:1px solid rgba(0,212,170,.2);
+  border-radius:6px; padding:1rem; text-align:center;
+}
+.result-box .val { font-family:'Space Mono',monospace; font-size:1.3rem; color:var(--accent); font-weight:700; }
+.result-box .lbl { font-size:.75rem; color:var(--text2); margin-top:.3rem; }
+
+/* ── PRODUTOS (MDT/MDS/CHM) ── */
+.products-tabs { margin-bottom:2rem; }
+.tab-btns { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:2rem; }
+.tab-btn {
+  font-family:'Space Mono',monospace; font-size:.78rem; padding:.55rem 1.3rem;
+  border-radius:5px; border:1px solid var(--border); background:transparent;
+  color:var(--text2); cursor:pointer; transition:all .2s;
+}
+.tab-btn.active { background:var(--accent); color:#0a0e1a; border-color:var(--accent); }
+.tab-content { display:none; }
+.tab-content.active { display:block; animation: fadeIn .3s ease; }
+
+.produto-hero {
+  display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; align-items:center;
+}
+@media(max-width:680px){ .produto-hero{grid-template-columns:1fr;} }
+.produto-canvas-wrap { border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+.produto-info h2 { font-family:'Space Mono',monospace; font-size:1.5rem; margin-bottom:.5rem; }
+.produto-info .badge {
+  display:inline-block; font-family:'Space Mono',monospace; font-size:.7rem;
+  padding:.25rem .7rem; border-radius:3px; margin-bottom:1rem;
+}
+.badge-mdt { background:rgba(91,140,255,.15); color:var(--accent2); border:1px solid rgba(91,140,255,.3); }
+.badge-mds { background:rgba(0,212,170,.12); color:var(--accent); border:1px solid rgba(0,212,170,.3); }
+.badge-chm { background:rgba(255,107,107,.12); color:var(--accent3); border:1px solid rgba(255,107,107,.3); }
+.produto-info p { color:var(--text2); line-height:1.75; font-size:.95rem; margin-bottom:1rem; }
+.feature-list { list-style:none; display:flex; flex-direction:column; gap:.5rem; }
+.feature-list li { font-size:.88rem; color:var(--text2); display:flex; gap:.6rem; align-items:flex-start; }
+.feature-list li::before { content:'→'; color:var(--accent); flex-shrink:0; font-family:'Space Mono',monospace; }
+
+/* ── METRICAS ── */
+.metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.5rem; }
+.metric-card {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:8px; overflow:hidden;
+}
+.metric-header {
+  padding:1rem 1.5rem; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:.8rem;
+}
+.metric-header h3 { font-family:'Space Mono',monospace; font-size:.9rem; }
+.metric-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.metric-body { padding:1.2rem 1.5rem; }
+.metric-formula {
+  background:rgba(0,0,0,.3); border-left:3px solid var(--accent);
+  padding:.7rem 1rem; border-radius:0 4px 4px 0;
+  font-family:'Space Mono',monospace; font-size:.8rem;
+  color:var(--accent); margin:.7rem 0; line-height:1.6;
+}
+.metric-desc { font-size:.87rem; color:var(--text2); line-height:1.65; }
+
+/* ── DISTRIBUIÇÃO INTERACTIVE ── */
+.dist-panel {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:10px; overflow:hidden;
+}
+.dist-header { padding:1.5rem 2rem; border-bottom:1px solid var(--border); }
+.dist-body { display:grid; grid-template-columns:1fr 340px; }
+@media(max-width:800px){ .dist-body{grid-template-columns:1fr;} }
+#dist-canvas-wrap { padding:1.5rem; }
+#dist-canvas { width:100%; max-height:300px; }
+.dist-controls { padding:1.5rem; border-left:1px solid var(--border); }
+.dist-controls h4 { font-family:'Space Mono',monospace; font-size:.82rem; margin-bottom:1.2rem; color:var(--text2); }
+.slider-group { margin-bottom:1.2rem; }
+.slider-group label { font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; color:var(--text2); display:flex; justify-content:space-between; margin-bottom:.4rem; }
+.slider-group label span { color:var(--accent); font-family:'Space Mono',monospace; }
+input[type=range] {
+  width:100%; accent-color:var(--accent);
+  height:4px; cursor:pointer;
+}
+.stats-out { margin-top:1.5rem; display:flex; flex-direction:column; gap:.5rem; }
+.stat-row { display:flex; justify-content:space-between; align-items:center; font-size:.82rem; padding:.4rem 0; border-bottom:1px solid var(--border); }
+.stat-row:last-child { border-bottom:none; }
+.stat-name { color:var(--text2); font-family:'Space Mono',monospace; }
+.stat-value { color:var(--accent); font-family:'Space Mono',monospace; font-weight:700; }
+
+/* ── RETORNOS DIAGRAM ── */
+.returns-diagram {
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:10px; padding:2rem;
+}
+#returns-canvas { width:100%; height:220px; }
+
+/* ── FOOTER ── */
+footer {
+  text-align:center; padding:3rem 2rem; border-top:1px solid var(--border);
+  font-family:'Space Mono',monospace; font-size:.75rem; color:var(--text2);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+
+.divider { height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); margin:0; }
+
+/* scroll reveal */
+.reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.visible { opacity:1; transform:none; }
+
+/* tooltip */
+.tooltip-wrap { position:relative; display:inline-block; }
+.tooltip-wrap .tip {
+  position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+  background:#1a2240; border:1px solid var(--border); border-radius:5px;
+  padding:.5rem .8rem; font-size:.78rem; color:var(--text); white-space:nowrap;
+  opacity:0; pointer-events:none; transition:opacity .2s; z-index:50;
+}
+.tooltip-wrap:hover .tip { opacity:1; }
+
+/* table */
+.data-table { width:100%; border-collapse:collapse; font-size:.88rem; margin-top:1.5rem; }
+.data-table th { font-family:'Space Mono',monospace; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--text2); padding:.8rem 1rem; border-bottom:1px solid var(--border); text-align:left; }
+.data-table td { padding:.75rem 1rem; border-bottom:1px solid rgba(255,255,255,.04); color:var(--text); }
+.data-table tr:hover td { background:rgba(255,255,255,.02); }
+.data-table .highlight { color:var(--accent); font-family:'Space Mono',monospace; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">// LiDAR_ALS</div>
+  <div class="nav-links">
+    <a href="#intro" class="active">Intro</a>
+    <a href="#parametros">Parâmetros</a>
+    <a href="#retornos">Retornos</a>
+    <a href="#produtos">Produtos</a>
+    <a href="#metricas">Métricas</a>
+    <a href="#distribuicao">Distribuição</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="intro">
+  <div class="hero-bg"></div>
+  <div class="scan-lines"></div>
+  <div style="position:relative;z-index:1;width:100%;max-width:800px;">
+    <div class="hero-tag">Sensoriamento Remoto Ativo · ALS</div>
+    <h1>LiDAR<br><span>Parametrização de Voo</span><br>& Produtos</h1>
+    <p>Do princípio físico do pulso laser à derivação de MDT, MDS, CHM e às métricas estatísticas da nuvem de pontos.</p>
+    <div class="hero-chips">
+      <span class="chip c1">ALS · Airborne</span>
+      <span class="chip c2">NBR / ASPRS .las</span>
+      <span class="chip c3">MDT · MDS · CHM</span>
+      <span class="chip c4">Métricas Descritivas</span>
+    </div>
+    <div class="lidar-demo">
+      <canvas id="lidar-canvas" width="560" height="260"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- COMO FUNCIONA -->
+<section id="como" class="reveal">
+  <div class="sec-label">Fundamentos</div>
+  <div class="sec-title">Como o LiDAR funciona?</div>
+  <p class="sec-sub">O sensor emite pulsos laser infravermelhos (≈1064 nm) em direção ao solo. O tempo de retorno de cada pulso — medido em nanossegundos — determina a distância precisa ao objeto interceptado.</p>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📡</div>
+      <h3>Sensor Ativo</h3>
+      <p>Ao contrário de câmeras passivas, o LiDAR gera sua própria energia. Emite pulsos laser e mede o retorno, independente da iluminação solar.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <h3>Time-of-Flight</h3>
+      <p>A distância é calculada por <em>d = c × (t / 2)</em>, onde c = 299.792.458 m/s. Um tempo de 0,0032 ms equivale a 480 m de distância do avião ao objeto.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌊</div>
+      <h3>Comprimento de Onda</h3>
+      <p>Levantamentos florestais e urbanos usam ~1064 nm (infravermelho próximo), seguro para seres vivos. Batimetria requer comprimentos próximos ao azul.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛩️</div>
+      <h3>IMU + GPS</h3>
+      <p>A Unidade de Medição Inercial (IMU) registra orientação (roll, pitch, yaw) combinada ao GPS para georreferenciar precisamente cada ponto.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📄</div>
+      <h3>Formato .LAS</h3>
+      <p>Padrão ASPRS para troca de nuvens de pontos. Armazena XYZ, intensidade, número do retorno, classificação, ângulo de varredura, RGB e mais.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔎</div>
+      <h3>Múltiplos Retornos</h3>
+      <p>Um único pulso pode gerar vários retornos ao atravessar a copa de árvores. O 1º retorno = topo; o último retorno = solo. Até 5 retornos intermediários.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PARAMETROS DE VOO -->
+<section id="parametros" class="reveal">
+  <div class="sec-label">Planejamento</div>
+  <div class="sec-title">Calculadora de<br>Parametrização de Voo</div>
+  <p class="sec-sub">Ajuste os parâmetros do levantamento e veja como eles afetam a densidade de pontos, a faixa imageada e o footprint do laser.</p>
+  
+  <div class="calc-panel">
+    <div class="calc-grid">
+      <div class="input-group">
+        <label>Altura de Voo (m)</label>
+        <input type="number" id="altura" value="900" min="100" max="5000">
+      </div>
+      <div class="input-group">
+        <label>Velocidade (km/h)</label>
+        <input type="number" id="velocidade" value="140" min="50" max="400">
+      </div>
+      <div class="input-group">
+        <label>Ângulo de Varredura (°)</label>
+        <input type="number" id="angulo" value="40" min="10" max="75">
+      </div>
+      <div class="input-group">
+        <label>Freq. de Emissão (kHz)</label>
+        <input type="number" id="freq_emissao" value="110" min="10" max="500">
+      </div>
+      <div class="input-group">
+        <label>Freq. de Escaneamento (Hz)</label>
+        <input type="number" id="freq_scan" value="50" min="10" max="200">
+      </div>
+      <div class="input-group">
+        <label>Divergência do Laser (mrad)</label>
+        <input type="number" id="divergencia" value="1" min="0.1" max="5" step="0.1">
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calcular()">▶ Calcular Parâmetros</button>
+    <div class="results-grid" id="results">
+      <div class="result-box"><div class="val" id="r_faixa">—</div><div class="lbl">Faixa (m)</div></div>
+      <div class="result-box"><div class="val" id="r_footprint">—</div><div class="lbl">Footprint (cm)</div></div>
+      <div class="result-box"><div class="val" id="r_pulsos_linha">—</div><div class="lbl">Pulsos/linha</div></div>
+      <div class="result-box"><div class="val" id="r_densidade">—</div><div class="lbl">Dens. aprox. (pts/m²)</div></div>
+    </div>
+  </div>
+
+  <!-- TABELA DENSIDADE (do XLSX) -->
+  <h3 style="font-family:'Space Mono',monospace;font-size:1rem;margin-bottom:.5rem;margin-top:2rem;">Densidade por altura de voo (f=110 kHz, v=140 km/h, θ=7°)</h3>
+  <p style="font-size:.85rem;color:var(--text2);margin-bottom:1rem;">Baseado na planilha ALS_point_density — três cenários de altitude:</p>
+  <table class="data-table">
+    <thead><tr><th>Altura (m)</th><th>Faixa (m)</th><th>Área varrida (m²/s)</th><th>Densidade (pts/m²)</th></tr></thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</section>
+
+<div class="divider"></div>
+
+<!-- RETORNOS -->
+<section id="retornos" class="reveal">
+  <div class="sec-label">Física do Pulso</div>
+  <div class="sec-title">Múltiplos Retornos<br>& Estrutura Vertical</div>
+  <p class="sec-sub">Cada pulso laser pode ser fragmentado ao penetrar na cobertura vegetal, gerando retornos em diferentes alturas. Isso permite reconstruir a estrutura tridimensional da floresta.</p>
+  <div class="returns-diagram">
+    <canvas id="returns-canvas" width="900" height="220"></canvas>
+  </div>
+  <div class="cards" style="margin-top:1.5rem;">
+    <div class="card">
+      <div class="card-icon" style="color:var(--accent4)">1°</div>
+      <h3>Primeiro Retorno</h3>
+      <p>Ponto mais alto interceptado — geralmente topo de copas, telhados ou qualquer superfície elevada. Representa a superfície de dossel.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:var(--accent2)">↕</div>
+      <h3>Retornos Intermediários</h3>
+      <p>Ramos, sub-bosque, sub-dossel. Revelam a estratificação vertical da vegetação. Equipamentos modernos armazenam de 3 a 5 retornos intermediários.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="color:var(--accent3)">∞</div>
+      <h3>Último Retorno</h3>
+      <p>Associado ao solo (ground). Após filtração e interpolação, origina o Modelo Digital de Terreno (MDT).</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRODUTOS -->
+<section id="produtos" class="reveal">
+  <div class="sec-label">Produtos Básicos</div>
+  <div class="sec-title">MDT · MDS · CHM</div>
+  <p class="sec-sub">Os três modelos raster fundamentais derivados da nuvem de pontos LiDAR. Cada um representa uma superfície diferente com aplicações específicas.</p>
+  
+  <div class="products-tabs">
+    <div class="tab-btns">
+      <button class="tab-btn active" onclick="showTab('mdt',this)">MDT — Terreno</button>
+      <button class="tab-btn" onclick="showTab('mds',this)">MDS — Superfície</button>
+      <button class="tab-btn" onclick="showTab('chm',this)">CHM — Altura de Copa</button>
+    </div>
+
+    <!-- MDT -->
+    <div class="tab-content active" id="tab-mdt">
+      <div class="produto-hero">
+        <div class="produto-canvas-wrap"><canvas id="canvas-mdt" width="500" height="280"></canvas></div>
+        <div class="produto-info">
+          <div class="badge badge-mdt">MDT · Digital Terrain Model</div>
+          <h2>Modelo Digital de Terreno</h2>
+          <p>Representa exclusivamente a superfície do solo, removendo todas as feições sobre ele (vegetação, edificações, etc.). É derivado a partir dos <strong>últimos retornos</strong> e dos <strong>retornos classificados como solo</strong>.</p>
+          <p>É a base para cálculo de declividade, curvatura, direção de fluxo, bacias hidrográficas e outros produtos hidrológicos e geomorfológicos.</p>
+          <ul class="feature-list">
+            <li>Derivado dos últimos retornos (solo)</li>
+            <li>Requer algoritmos de filtragem ground/non-ground</li>
+            <li>Resolução típica: 0,5 a 2 metros</li>
+            <li>Precisão vertical: &lt; 15 cm RMSE</li>
+            <li>Base para MDN, declividade, watershed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- MDS -->
+    <div class="tab-content" id="tab-mds">
+      <div class="produto-hero">
+        <div class="produto-canvas-wrap"><canvas id="canvas-mds" width="500" height="280"></canvas></div>
+        <div class="produto-info">
+          <div class="badge badge-mds">MDS · Digital Surface Model</div>
+          <h2>Modelo Digital de Superfície</h2>
+          <p>Representa a superfície mais alta de todos os objetos (topo de copas, telhados, postes, pontes). É derivado a partir dos <strong>primeiros retornos</strong> de cada pulso.</p>
+          <p>Em ambientes florestais, o MDS corresponde ao dossel da floresta. Em ambientes urbanos, representa o perfil das edificações.</p>
+          <ul class="feature-list">
+            <li>Derivado dos primeiros retornos</li>
+            <li>Inclui vegetação, edificações e objetos</li>
+            <li>Útil para análise urbana e modelagem 3D</li>
+            <li>Combinado ao MDT gera o CHM</li>
+            <li>Resolução típica: 0,5 a 1 metro</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHM -->
+    <div class="tab-content" id="tab-chm">
+      <div class="produto-hero">
+        <div class="produto-canvas-wrap"><canvas id="canvas-chm" width="500" height="280"></canvas></div>
+        <div class="produto-info">
+          <div class="badge badge-chm">CHM · Canopy Height Model</div>
+          <h2>Modelo de Altura de Copa</h2>
+          <p>Representa a <strong>altura das copas</strong> acima do solo, obtido pela simples diferença: <code>CHM = MDS − MDT</code>. Cada pixel indica quantos metros a superfície está acima do terreno.</p>
+          <p>É o produto mais utilizado em inventários florestais, estimativa de biomassa, volume de madeira e análise de estrutura da floresta.</p>
+          <ul class="feature-list">
+            <li>CHM = MDS − MDT</li>
+            <li>Valores representam altura da copa (m)</li>
+            <li>Base para segmentação de copas individuais</li>
+            <li>Estimativa de DAP, altura dominante, biomassa</li>
+            <li>Correlaciona com volume e estoque de carbono</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RELAÇÃO VISUAL MDT/MDS/CHM -->
+  <div class="calc-panel" style="margin-top:2rem;">
+    <h3 style="font-family:'Space Mono',monospace;font-size:.95rem;margin-bottom:1.5rem;">Relação MDT · MDS · CHM — Perfil de Floresta</h3>
+    <canvas id="canvas-profile" width="1000" height="200" style="width:100%;border-radius:4px;"></canvas>
+    <div style="display:flex;gap:2rem;flex-wrap:wrap;margin-top:1rem;font-size:.8rem;font-family:'Space Mono',monospace;">
+      <span style="color:var(--accent2)">■ MDT (Terreno)</span>
+      <span style="color:var(--accent)">■ MDS (Superfície/Dossel)</span>
+      <span style="color:var(--accent3)">↕ CHM (altura = MDS − MDT)</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- METRICAS -->
+<section id="metricas" class="reveal">
+  <div class="sec-label">Estatísticas Descritivas</div>
+  <div class="sec-title">Métricas da<br>Nuvem de Pontos</div>
+  <p class="sec-sub">As métricas são estatísticas calculadas sobre a distribuição altimétrica dos pontos dentro de cada célula (pixel) da grade. Elas descrevem a estrutura vertical e são a base para modelagem de atributos florestais.</p>
+  
+  <div class="metrics-grid">
+
+    <!-- POSIÇÃO -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-dot" style="background:var(--accent2)"></div>
+        <h3>Métricas de Posição · Tendência Central</h3>
+      </div>
+      <div class="metric-body">
+        <div class="metric-formula">mean = Σ(xᵢ) / n</div>
+        <div class="metric-formula">qmean = √( Σ(xᵢ²) / n )</div>
+        <div class="metric-formula">cmean = ³√( Σ(xᵢ³) / n )</div>
+        <p class="metric-desc">A <strong>média aritmética</strong> (mean) é o descritor mais simples da altura média da nuvem. A <strong>média quadrática</strong> penaliza valores extremos altos e é sensível ao dossel superior. A <strong>média cúbica</strong> amplifica ainda mais a influência dos retornos mais altos.</p>
+        <table class="data-table" style="margin-top:1rem;">
+          <tr><th>Métrica</th><th>Sensível a</th></tr>
+          <tr><td>Mean</td><td class="highlight">Altura média geral</td></tr>
+          <tr><td>Q-mean</td><td class="highlight">Dossel superior</td></tr>
+          <tr><td>C-mean</td><td class="highlight">Pontos extremamente altos</td></tr>
+          <tr><td>Mediana (P50)</td><td class="highlight">Centro da distribuição</td></tr>
+          <tr><td>Moda</td><td class="highlight">Estrato mais frequente</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- SEPARATRIZES -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-dot" style="background:var(--accent4)"></div>
+        <h3>Percentis · Separatrizes</h3>
+      </div>
+      <div class="metric-body">
+        <div class="metric-formula">P10, P25, P50, P75, P90, P95, P99</div>
+        <p class="metric-desc">Os percentis dividem a série ordenada de alturas em partes iguais. São as métricas mais utilizadas em modelos de inventário florestal. Cada um captura um estrato diferente da estrutura vertical:</p>
+        <table class="data-table" style="margin-top:.8rem;">
+          <tr><th>Percentil</th><th>Interpretação florestal</th></tr>
+          <tr><td class="highlight">P10</td><td>Regeneração / sub-bosque baixo</td></tr>
+          <tr><td class="highlight">P25 (Q1)</td><td>Estrato inferior</td></tr>
+          <tr><td class="highlight">P50 (Mediana)</td><td>Altura dominante intermediária</td></tr>
+          <tr><td class="highlight">P75 (Q3)</td><td>Estrato superior / copa média</td></tr>
+          <tr><td class="highlight">P95/P99</td><td>Árvores emergentes / dossel máx.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- DISPERSÃO -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-dot" style="background:var(--accent3)"></div>
+        <h3>Métricas de Dispersão</h3>
+      </div>
+      <div class="metric-body">
+        <div class="metric-formula">s = √( Σ(xᵢ − x̄)² / n )</div>
+        <div class="metric-formula">DQ = (Q3 − Q1) / 2</div>
+        <div class="metric-formula">MAD = Σ|xᵢ − x̄| / n</div>
+        <p class="metric-desc">O <strong>desvio padrão</strong> mede a variabilidade geral da altura. O <strong>desvio quartil (DQ)</strong> é robusto a outliers. O <strong>MAD</strong> (Mean Absolute Deviation) é menos sensível a extremos. Altos valores indicam floresta heterogênea (multi-estrato) ou transição de dossel.</p>
+      </div>
+    </div>
+
+    <!-- FORMA -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-dot" style="background:#a78bfa"></div>
+        <h3>Métricas de Forma · Assimetria & Curtose</h3>
+      </div>
+      <div class="metric-body">
+        <div class="metric-formula">Skewness = Σ(xᵢ−x̄)³ / (n−1)·s³</div>
+        <div class="metric-formula">Kurtosis = Σ(xᵢ−x̄)⁴ / (n−1)·s⁴</div>
+        <p class="metric-desc"><strong>Assimetria positiva (Skew &gt; 0)</strong>: maioria dos pontos concentrados em estratos baixos — floresta jovem ou sub-bosque denso.<br><strong>Assimetria negativa (Skew &lt; 0)</strong>: pontos concentrados no dossel superior.<br><strong>Curtose alta (leptocúrtica)</strong>: distribuição com pico pronunciado em um estrato único. <strong>Curtose baixa (platicúrtica)</strong>: distribuição uniforme pela altura.</p>
+      </div>
+    </div>
+
+    <!-- PROPORÇÃO -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-dot" style="background:var(--accent)"></div>
+        <h3>Métricas de Proporção (Density Ratios)</h3>
+      </div>
+      <div class="metric-body">
+        <div class="metric-formula">d = (#retornos acima de H) / (#total) × 100</div>
+        <p class="metric-desc">Indicam a proporção de pontos acima de um limiar de altura (ex: 2 m, média, moda). Descrevem a densidade de cobertura em diferentes estratos:</p>
+        <ul class="feature-list" style="margin-top:.8rem;">
+          <li>Acima de altura X (ex: &gt; 2m = acima do solo)</li>
+          <li>Acima da média (densidade de dossel superior)</li>
+          <li>Acima da moda (estratos acima do mais frequente)</li>
+          <li>Razão de relevo de copa (crown relief ratio)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- L-MOMENTS -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-dot" style="background:#fb923c"></div>
+        <h3>Métricas de Momento-L</h3>
+      </div>
+      <div class="metric-body">
+        <div class="metric-formula">L1 = μ (localização)</div>
+        <div class="metric-formula">L2 = escala (≈ desvio padrão L)</div>
+        <div class="metric-formula">τ3 = L-skewness · τ4 = L-kurtosis</div>
+        <p class="metric-desc">Os <strong>L-moments</strong> são alternativas robustas aos momentos estatísticos clássicos. São menos sensíveis a outliers e distribuições assimétricas, comuns em nuvens de pontos florestais. São calculados como combinações lineares de estatísticas de ordem e têm boas propriedades de estimação para amostras pequenas (células com poucos pontos).</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DISTRIBUIÇÃO INTERATIVA -->
+<section id="distribuicao" class="reveal">
+  <div class="sec-label">Exploração Interativa</div>
+  <div class="sec-title">Distribuição dos Pontos<br>& Métricas em Tempo Real</div>
+  <p class="sec-sub">Modifique os parâmetros da distribuição e observe como as métricas mudam. Simula diferentes tipos de floresta ou estrutura vertical.</p>
+  
+  <div class="dist-panel">
+    <div class="dist-header">
+      <h3 style="font-family:'Space Mono',monospace;font-size:.95rem;">Histograma de Alturas · Nuvem de Pontos Simulada</h3>
+    </div>
+    <div class="dist-body">
+      <div id="dist-canvas-wrap">
+        <canvas id="dist-canvas" width="700" height="300"></canvas>
+      </div>
+      <div class="dist-controls">
+        <h4>// parâmetros</h4>
+        <div class="slider-group">
+          <label>Altura média (m) <span id="lbl-mean">18</span></label>
+          <input type="range" id="sl-mean" min="2" max="40" value="18" oninput="updateDist()">
+        </div>
+        <div class="slider-group">
+          <label>Desvio padrão (m) <span id="lbl-sd">6</span></label>
+          <input type="range" id="sl-sd" min="1" max="15" value="6" oninput="updateDist()">
+        </div>
+        <div class="slider-group">
+          <label>Assimetria <span id="lbl-sk">0.0</span></label>
+          <input type="range" id="sl-sk" min="-20" max="20" value="0" oninput="updateDist()">
+        </div>
+        <div class="slider-group">
+          <label>N° de pontos <span id="lbl-n">800</span></label>
+          <input type="range" id="sl-n" min="100" max="2000" value="800" oninput="updateDist()">
+        </div>
+        <div class="stats-out" id="stats-out">
+          <div class="stat-row"><span class="stat-name">mean</span><span class="stat-value" id="s-mean">—</span></div>
+          <div class="stat-row"><span class="stat-name">median</span><span class="stat-value" id="s-median">—</span></div>
+          <div class="stat-row"><span class="stat-name">std dev</span><span class="stat-value" id="s-sd">—</span></div>
+          <div class="stat-row"><span class="stat-name">skewness</span><span class="stat-value" id="s-sk">—</span></div>
+          <div class="stat-row"><span class="stat-name">kurtosis</span><span class="stat-value" id="s-kurt">—</span></div>
+          <div class="stat-row"><span class="stat-name">P25</span><span class="stat-value" id="s-p25">—</span></div>
+          <div class="stat-row"><span class="stat-name">P75</span><span class="stat-value" id="s-p75">—</span></div>
+          <div class="stat-row"><span class="stat-name">P95</span><span class="stat-value" id="s-p95">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:.5rem;color:var(--accent)">// LiDAR · ALS · Parametrização & Produtos</div>
+  MDT · MDS · CHM · Métricas Descritivas da Nuvem de Pontos<br>
+  <span style="margin-top:.5rem;display:block">Baseado em NBR/ASPRS · FUSION · Aula Interativa</span>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// LIDAR HERO ANIMATION
+// ══════════════════════════════════════════════════════════════════════
+(function(){
+  const c = document.getElementById('lidar-canvas');
+  const ctx = c.getContext('2d');
+  const W = c.width, H = c.height;
+  const planeX = W*0.5, planeY = 32;
+  const ground = [];
+  for(let x=0;x<W;x++) ground.push(H-30+Math.sin(x*0.02)*18+Math.sin(x*0.05)*8);
+  const trees = [];
+  for(let i=0;i<12;i++) trees.push({x:30+i*(W-60)/11, h:30+Math.random()*50});
+  const pulses = [];
+  let frame=0;
+
+  function newPulse(){
+    const angle = (Math.random()-.5)*0.8;
+    pulses.push({x:planeX,y:planeY,vx:Math.sin(angle)*4,vy:4,alive:true,returns:[],phase:'going'});
+  }
+
+  function drawGround(){
+    ctx.beginPath(); ctx.moveTo(0,H);
+    for(let x=0;x<W;x++) ctx.lineTo(x,ground[x]);
+    ctx.lineTo(W,H); ctx.closePath();
+    ctx.fillStyle='rgba(91,140,255,0.08)'; ctx.fill();
+    ctx.strokeStyle='rgba(91,140,255,0.3)'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+
+  function drawTrees(){
+    trees.forEach(t=>{
+      const gY = ground[Math.round(t.x)]||H-30;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(t.x,gY);
+      ctx.lineTo(t.x-8,gY-t.h*0.4);
+      ctx.lineTo(t.x+8,gY-t.h*0.4);
+      ctx.closePath();
+      ctx.fillStyle='rgba(0,212,170,0.12)'; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(t.x,gY-t.h*0.3);
+      ctx.lineTo(t.x-14,gY-t.h*0.75);
+      ctx.lineTo(t.x+14,gY-t.h*0.75);
+      ctx.closePath();
+      ctx.fillStyle='rgba(0,212,170,0.18)'; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(t.x,gY-t.h*0.65);
+      ctx.lineTo(t.x-10,gY-t.h);
+      ctx.lineTo(t.x+10,gY-t.h);
+      ctx.closePath();
+      ctx.fillStyle='rgba(0,212,170,0.25)'; ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  function animate(){
+    requestAnimationFrame(animate);
+    ctx.clearRect(0,0,W,H);
+
+    // background
+    ctx.fillStyle='rgba(10,14,26,0.95)';
+    ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle='rgba(255,255,255,0.03)'; ctx.lineWidth=1;
+    for(let y=0;y<H;y+=30){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    for(let x=0;x<W;x+=50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+
+    drawGround(); drawTrees();
+
+    // plane
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.ellipse(planeX,planeY,22,7,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='var(--accent)';
+    ctx.beginPath(); ctx.arc(planeX,planeY,3,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    // new pulse every N frames
+    if(frame%18===0) newPulse();
+
+    pulses.forEach((p,i)=>{
+      if(!p.alive){ pulses.splice(i,1); return; }
+      if(p.phase==='going'){
+        p.x+=p.vx; p.y+=p.vy;
+        // check hit
+        const gx = Math.round(p.x);
+        let hitY = p.y > H-5 ? H-10 : null;
+        // check trees
+        let treeHit=null;
+        trees.forEach(t=>{
+          const gY=ground[Math.round(t.x)]||H-30;
+          const dx=Math.abs(p.x-t.x);
+          if(dx<15 && p.y>gY-t.h-5 && p.y<gY-t.h*0.3) treeHit={x:p.x,y:p.y,type:'crown'};
+          if(dx<10 && p.y>gY-t.h*0.3 && p.y<gY-5) treeHit={x:p.x,y:p.y,type:'mid'};
+        });
+        if(gx>=0&&gx<W && p.y>=ground[gx]) hitY=ground[gx];
+
+        if(treeHit && Math.random()<0.55){
+          p.returns.push({...treeHit,alpha:1,type:treeHit.type});
+          if(Math.random()<0.5){ p.phase='going'; }
+          else { p.phase='returning'; p.ry=p.y; }
+        }
+        if(hitY!==null){
+          p.returns.push({x:p.x,y:hitY,alpha:1,type:'ground'});
+          p.phase='done'; p.alive=false;
+        }
+        if(p.x<0||p.x>W||p.y>H) p.alive=false;
+
+        // draw beam
+        ctx.strokeStyle='rgba(0,212,170,0.6)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(planeX,planeY); ctx.lineTo(p.x,p.y); ctx.stroke();
+        ctx.beginPath(); ctx.arc(p.x,p.y,2,0,Math.PI*2);
+        ctx.fillStyle='rgba(0,212,170,0.9)'; ctx.fill();
+      }
+      // draw returns
+      p.returns.forEach(r=>{
+        const clr = r.type==='ground'?'#5b8cff':r.type==='crown'?'#ffd166':'#00d4aa';
+        ctx.beginPath(); ctx.arc(r.x,r.y,3,0,Math.PI*2);
+        ctx.fillStyle=clr; ctx.globalAlpha=r.alpha; ctx.fill(); ctx.globalAlpha=1;
+        r.alpha=Math.max(0,r.alpha-0.008);
+      });
+    });
+
+    // legend
+    ctx.font='10px Space Mono,monospace';
+    [[planeX-18,planeY+18,'AERONAVE','rgba(255,255,255,.5)'],
+     [20,H-45,'Solo (último retorno)','rgba(91,140,255,.7)'],
+     [20,H-30,'Copa (1° retorno)','rgba(255,209,102,.7)']].forEach(([x,y,t,c])=>{
+      ctx.fillStyle=c; ctx.fillText(t,x,y);
+    });
+    frame++;
+  }
+  animate();
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// CALCULADORA DE VÔO
+// ══════════════════════════════════════════════════════════════════════
+function calcular(){
+  const h = +document.getElementById('altura').value;
+  const v = +document.getElementById('velocidade').value * 1000/3600;
+  const ang = +document.getElementById('angulo').value;
+  const fe = +document.getElementById('freq_emissao').value * 1000;
+  const fs = +document.getElementById('freq_scan').value;
+  const div = +document.getElementById('divergencia').value * 0.001;
+
+  const faixa = 2 * h * Math.tan((ang/2)*(Math.PI/180));
+  const footprint = (0.10 + 2*h*Math.tan(div/2))*100;
+  const ppl = Math.round(fe/fs);
+  const areaSec = faixa * v;
+  const dens = (fe/1000) / areaSec * 1000;
+
+  document.getElementById('r_faixa').textContent = faixa.toFixed(0)+' m';
+  document.getElementById('r_footprint').textContent = footprint.toFixed(1)+' cm';
+  document.getElementById('r_pulsos_linha').textContent = ppl;
+  document.getElementById('r_densidade').textContent = dens.toFixed(1);
+}
+
+// tabela densidade
+(function(){
+  const alturas=[900,1658,2485];
+  const fe=110000, v=140*1000/3600, ang=7;
+  const fator=2*Math.tan((ang/2)*(Math.PI/180));
+  const tbody=document.getElementById('table-body');
+  alturas.forEach(h=>{
+    const faixa=h*fator;
+    const area=faixa*v;
+    const dens=(fe/1000)/area*1000;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="highlight">${h}</td><td>${faixa.toFixed(0)}</td><td>${area.toFixed(0)}</td><td class="highlight">${dens.toFixed(2)}</td>`;
+    tbody.appendChild(tr);
+  });
+})();
+calcular();
+
+// ══════════════════════════════════════════════════════════════════════
+// RETORNOS CANVAS
+// ══════════════════════════════════════════════════════════════════════
+(function(){
+  const c=document.getElementById('returns-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#0f1525'; ctx.fillRect(0,0,W,H);
+
+    // sky gradient
+    const sky=ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'rgba(10,14,26,1)'); sky.addColorStop(1,'rgba(20,35,60,0.5)');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
+
+    // ground
+    ctx.fillStyle='rgba(91,140,255,0.15)';
+    ctx.fillRect(0,H-35,W,35);
+    ctx.strokeStyle='rgba(91,140,255,0.4)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H-35); ctx.lineTo(W,H-35); ctx.stroke();
+
+    // trees
+    const treePositions=[80,200,320,440,560,680,800];
+    const treeHeights=[130,95,115,140,100,120,90];
+    treePositions.forEach((tx,i)=>{
+      const th=treeHeights[i];
+      const gy=H-35;
+      // trunk
+      ctx.fillStyle='rgba(100,60,20,0.6)';
+      ctx.fillRect(tx-4,gy-th*0.3,8,th*0.3);
+      // canopy layers
+      [[20,0.3],[30,0.6],[22,0.9]].forEach(([w,f])=>{
+        ctx.beginPath(); ctx.moveTo(tx,gy-th*f-20); ctx.lineTo(tx-w,gy-th*f); ctx.lineTo(tx+w,gy-th*f); ctx.closePath();
+        ctx.fillStyle=`rgba(0,180,120,${0.15+(0.9-f)*0.15})`; ctx.fill();
+      });
+    });
+
+    // pulses & returns
+    const pulseConfigs=[
+      {x:120, returns:[{y:H-35-130*0.9,color:'#ffd166',label:'1° retorno (topo copa)'},{y:H-35-130*0.55,color:'#00d4aa',label:'2° retorno (mid copa)'},{y:H-35-5,color:'#5b8cff',label:'último (solo)'}]},
+      {x:330, returns:[{y:H-35-115*0.9,color:'#ffd166',label:'1° retorno'},{y:H-35-5,color:'#5b8cff',label:'último (solo)'}]},
+      {x:550, returns:[{y:H-35-100*0.9,color:'#ffd166',label:'1° retorno'},{y:H-35-100*0.5,color:'#fb923c',label:'inter.'},{y:H-35-5,color:'#5b8cff',label:'solo'}]},
+    ];
+
+    const planeY=20;
+    pulseConfigs.forEach(pc=>{
+      // beam line
+      ctx.strokeStyle='rgba(0,212,170,0.2)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(pc.x,planeY); ctx.lineTo(pc.x,H-35); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // return dots & labels
+      pc.returns.forEach((r,ri)=>{
+        ctx.beginPath(); ctx.arc(pc.x,r.y,5,0,Math.PI*2);
+        ctx.fillStyle=r.color; ctx.fill();
+        ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.stroke();
+        // label
+        if(ri===0){
+          ctx.font='10px Space Mono,monospace';
+          ctx.fillStyle='rgba(255,255,255,0.5)';
+          ctx.fillText(r.label,pc.x+8,r.y+4);
+        }
+        // arrow back to plane
+        ctx.strokeStyle=r.color+'60'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(pc.x,r.y); ctx.lineTo(pc.x,planeY+8); ctx.stroke();
+      });
+
+      // plane indicator
+      ctx.beginPath(); ctx.arc(pc.x,planeY,4,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.fill();
+    });
+
+    // altitude label
+    ctx.font='11px DM Sans,sans-serif'; ctx.fillStyle='rgba(255,255,255,0.35)';
+    ctx.fillText('Aeronave', 10, planeY+4);
+    ctx.fillText('Solo', 10, H-38);
+  }
+  draw();
+})();
+
+// ══════════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════════
+function showTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  drawProduct(id);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PRODUTOS CANVAS (MDT/MDS/CHM)
+// ══════════════════════════════════════════════════════════════════════
+function drawProduct(type){
+  const cid={'mdt':'canvas-mdt','mds':'canvas-mds','chm':'canvas-chm'}[type];
+  const c=document.getElementById(cid);
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0f1525'; ctx.fillRect(0,0,W,H);
+
+  // terrain profile
+  const terrain=[];
+  for(let x=0;x<W;x++) terrain.push(H-60 + Math.sin(x*0.018)*25 + Math.sin(x*0.06)*10 + Math.cos(x*0.03)*15);
+  // canopy profile (trees above terrain)
+  const trees2=[];
+  const treeXs=[60,130,200,260,330,400,470];
+  treeXs.forEach(tx=>trees2.push({x:tx,h:40+Math.random()*55}));
+
+  function terrainAt(x){
+    const xi=Math.min(W-1,Math.max(0,Math.round(x)));
+    return terrain[xi];
+  }
+  function canopyAt(x){
+    let minY=terrainAt(x);
+    trees2.forEach(t=>{
+      const d=Math.abs(x-t.x);
+      if(d<30){ const h=t.h*(1-d/30); minY=Math.min(minY,terrainAt(t.x)-h); }
+    });
+    return minY;
+  }
+
+  if(type==='mdt'){
+    // fill below terrain
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'rgba(91,140,255,0.4)');
+    grad.addColorStop(1,'rgba(91,140,255,0.05)');
+    ctx.beginPath(); ctx.moveTo(0,H);
+    terrain.forEach((y,x)=>ctx.lineTo(x,y));
+    ctx.lineTo(W,H); ctx.closePath();
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.strokeStyle='#5b8cff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); terrain.forEach((y,x)=>x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)); ctx.stroke();
+    // label
+    ctx.font='bold 13px Space Mono,monospace'; ctx.fillStyle='#5b8cff';
+    ctx.fillText('MDT — Últimos Retornos (Solo)',20,22);
+    ctx.font='11px DM Sans'; ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillText('Superfície do terreno após filtragem ground/non-ground',20,40);
+  }
+  else if(type==='mds'){
+    // canopy fill
+    const gradC=ctx.createLinearGradient(0,0,0,H);
+    gradC.addColorStop(0,'rgba(0,212,170,0.4)');
+    gradC.addColorStop(1,'rgba(0,212,170,0.05)');
+    ctx.beginPath(); ctx.moveTo(0,H);
+    for(let x=0;x<W;x++) ctx.lineTo(x,canopyAt(x));
+    ctx.lineTo(W,H); ctx.closePath();
+    ctx.fillStyle=gradC; ctx.fill();
+    // terrain faint
+    ctx.strokeStyle='rgba(91,140,255,0.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); terrain.forEach((y,x)=>x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)); ctx.stroke();
+    // canopy outline
+    ctx.strokeStyle='#00d4aa'; ctx.lineWidth=2.5;
+    ctx.beginPath(); for(let x=0;x<W;x++) x===0?ctx.moveTo(x,canopyAt(x)):ctx.lineTo(x,canopyAt(x)); ctx.stroke();
+    ctx.font='bold 13px Space Mono,monospace'; ctx.fillStyle='#00d4aa';
+    ctx.fillText('MDS — Primeiros Retornos (Dossel)',20,22);
+    ctx.font='11px DM Sans'; ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillText('Superfície mais alta — inclui copa e edificações',20,40);
+  }
+  else {
+    // CHM = MDS - MDT
+    ctx.strokeStyle='rgba(91,140,255,0.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); terrain.forEach((y,x)=>x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)); ctx.stroke();
+    // fill between
+    for(let x=0;x<W;x++){
+      const yt=terrain[x], yc=canopyAt(x);
+      if(yc<yt){
+        const t=x/W;
+        const r=Math.floor(lerp(255,0,t)), g=Math.floor(lerp(50,212,t)), b=Math.floor(lerp(50,100,t));
+        ctx.fillStyle=`rgba(${r},${g},${b},0.6)`;
+        ctx.fillRect(x,yc,1,yt-yc);
+      }
+    }
+    // MDS line
+    ctx.strokeStyle='#ff6b6b'; ctx.lineWidth=2;
+    ctx.beginPath(); for(let x=0;x<W;x++) x===0?ctx.moveTo(x,canopyAt(x)):ctx.lineTo(x,canopyAt(x)); ctx.stroke();
+    // CHM label on trees
+    trees2.forEach(t=>{
+      const ty=terrainAt(t.x), cy=canopyAt(t.x);
+      if(cy<ty-10){
+        ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(t.x+18,cy); ctx.lineTo(t.x+18,ty); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font='9px Space Mono,monospace'; ctx.fillStyle='rgba(255,209,102,0.8)';
+        ctx.fillText((ty-cy).toFixed(0)+'m',t.x+20,(cy+ty)/2);
+      }
+    });
+    ctx.font='bold 13px Space Mono,monospace'; ctx.fillStyle='#ff6b6b';
+    ctx.fillText('CHM = MDS − MDT (Altura de Copa)',20,22);
+    ctx.font='11px DM Sans'; ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillText('Altura das copas acima do solo (metros)',20,40);
+  }
+}
+function lerp(a,b,t){return a+(b-a)*t;}
+
+// PROFILE CANVAS
+(function(){
+  const c=document.getElementById('canvas-profile');
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.fillStyle='#0f1525'; ctx.fillRect(0,0,W,H);
+
+  const terrain=[];
+  for(let x=0;x<W;x++) terrain.push(H-30+Math.sin(x*0.012)*20+Math.sin(x*0.04)*8);
+
+  const treeXs=[80,180,280,380,480,580,680,780,880];
+  function canopyAt(x){
+    let my=terrain[Math.min(W-1,x)]||H-30;
+    treeXs.forEach(tx=>{
+      const d=Math.abs(x-tx), r=38+Math.sin(tx)*12;
+      if(d<r){ const h=(55+Math.sin(tx*2)*20)*(1-d/r); my=Math.min(my,(terrain[Math.min(W-1,tx)]||H-30)-h); }
+    });
+    return my;
+  }
+
+  // MDT fill
+  const gT=ctx.createLinearGradient(0,0,0,H);
+  gT.addColorStop(0,'rgba(91,140,255,0.25)'); gT.addColorStop(1,'rgba(91,140,255,0.05)');
+  ctx.beginPath(); ctx.moveTo(0,H);
+  terrain.forEach((y,x)=>ctx.lineTo(x,y));
+  ctx.lineTo(W,H); ctx.closePath(); ctx.fillStyle=gT; ctx.fill();
+
+  // CHM fill
+  for(let x=0;x<W;x++){
+    const yt=terrain[x]||H-30, yc=canopyAt(x);
+    if(yc<yt){
+      ctx.fillStyle='rgba(0,212,170,0.5)';
+      ctx.fillRect(x,yc,1,yt-yc);
+    }
+  }
+
+  // MDT line
+  ctx.strokeStyle='#5b8cff'; ctx.lineWidth=2;
+  ctx.beginPath(); terrain.forEach((y,x)=>x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)); ctx.stroke();
+  // MDS line
+  ctx.strokeStyle='#00d4aa'; ctx.lineWidth=2;
+  ctx.beginPath(); for(let x=0;x<W;x++) x===0?ctx.moveTo(x,canopyAt(x)):ctx.lineTo(x,canopyAt(x)); ctx.stroke();
+})();
+
+drawProduct('mdt');
+
+// ══════════════════════════════════════════════════════════════════════
+// DISTRIBUIÇÃO INTERATIVA
+// ══════════════════════════════════════════════════════════════════════
+function sampleSkewNormal(mean,sd,skew,n){
+  const pts=[];
+  for(let i=0;i<n;i++){
+    let u=0,v=0;
+    while(u===0) u=Math.random();
+    while(v===0) v=Math.random();
+    let z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+    if(skew!==0){
+      const alpha=skew/Math.sqrt(1+skew*skew);
+      const delta=alpha/Math.sqrt(1+alpha*alpha);
+      const u1=Math.random(), u2=Math.random();
+      const v1=Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+      const v2=Math.sqrt(-2*Math.log(u1))*Math.sin(2*Math.PI*u2);
+      z=delta*Math.abs(v1)+(Math.sqrt(1-delta*delta))*v2;
+      if(skew<0) z=-z;
+    }
+    pts.push(Math.max(0, z*sd+mean));
+  }
+  return pts;
+}
+
+function pct(arr,p){ const s=[...arr].sort((a,b)=>a-b); return s[Math.floor(p/100*(s.length-1))]; }
+
+function updateDist(){
+  const mean=+document.getElementById('sl-mean').value;
+  const sd=+document.getElementById('sl-sd').value;
+  const sk=+document.getElementById('sl-sk').value/10;
+  const n=+document.getElementById('sl-n').value;
+  document.getElementById('lbl-mean').textContent=mean;
+  document.getElementById('lbl-sd').textContent=sd;
+  document.getElementById('lbl-sk').textContent=(sk>=0?'+':'')+sk.toFixed(1);
+  document.getElementById('lbl-n').textContent=n;
+
+  const pts=sampleSkewNormal(mean,sd,sk,n);
+  const sorted=[...pts].sort((a,b)=>a-b);
+  const m=pts.reduce((s,v)=>s+v,0)/pts.length;
+  const med=pct(pts,50);
+  const s2=pts.reduce((s,v)=>s+(v-m)**2,0)/pts.length;
+  const sdReal=Math.sqrt(s2);
+  const skewR=pts.reduce((s,v)=>s+(v-m)**3,0)/(pts.length*sdReal**3);
+  const kurtR=pts.reduce((s,v)=>s+(v-m)**4,0)/(pts.length*sdReal**4);
+  const p25=pct(pts,25), p75=pct(pts,75), p95=pct(pts,95);
+
+  document.getElementById('s-mean').textContent=m.toFixed(2)+' m';
+  document.getElementById('s-median').textContent=med.toFixed(2)+' m';
+  document.getElementById('s-sd').textContent=sdReal.toFixed(2)+' m';
+  document.getElementById('s-sk').textContent=skewR.toFixed(3);
+  document.getElementById('s-kurt').textContent=kurtR.toFixed(3);
+  document.getElementById('s-p25').textContent=p25.toFixed(2)+' m';
+  document.getElementById('s-p75').textContent=p75.toFixed(2)+' m';
+  document.getElementById('s-p95').textContent=p95.toFixed(2)+' m';
+
+  // histogram
+  const c=document.getElementById('dist-canvas');
+  const ctx=c.getContext('2d');
+  const W=c.width, H=c.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#0f1525'; ctx.fillRect(0,0,W,H);
+
+  const nbins=40;
+  const maxV=Math.max(...pts)+2, minV=0;
+  const bw=(maxV-minV)/nbins;
+  const bins=new Array(nbins).fill(0);
+  pts.forEach(p=>{ const bi=Math.min(nbins-1,Math.floor((p-minV)/bw)); bins[bi]++; });
+  const maxB=Math.max(...bins);
+  const pad={l:50,r:20,t:20,b:35};
+  const plotW=W-pad.l-pad.r, plotH=H-pad.t-pad.b;
+
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const y=pad.t+plotH*(1-i/5);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='9px Space Mono,monospace';
+    ctx.fillText(Math.round(maxB*i/5),pad.l-38,y+3);
+  }
+
+  // bars
+  bins.forEach((b,i)=>{
+    const x=pad.l+i*(plotW/nbins);
+    const bh=(b/maxB)*plotH;
+    const cx=(i+0.5)/nbins;
+    const r=Math.round(lerp(0,255,cx)), g=Math.round(lerp(212,100,cx)), bl2=Math.round(lerp(170,255,cx));
+    ctx.fillStyle=`rgba(${r},${g},${bl2},0.75)`;
+    ctx.fillRect(x,pad.t+plotH-bh,plotW/nbins-1,bh);
+  });
+
+  // markers: mean, median, P95
+  function xpos(v){ return pad.l+(v-minV)/(maxV-minV)*plotW; }
+  [[m,'#ffd166','mean'],[med,'#00d4aa','P50'],[p95,'#ff6b6b','P95']].forEach(([v,col,lbl])=>{
+    const xp=xpos(v);
+    ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.moveTo(xp,pad.t); ctx.lineTo(xp,pad.t+plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font='10px Space Mono,monospace'; ctx.fillStyle=col;
+    ctx.fillText(lbl,xp-15,pad.t+12);
+  });
+
+  // x-axis
+  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t+plotH); ctx.lineTo(W-pad.r,pad.t+plotH); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='10px Space Mono,monospace';
+  for(let i=0;i<=8;i++){
+    const v=minV+i*(maxV-minV)/8;
+    const xp=pad.l+i*plotW/8;
+    ctx.fillText(v.toFixed(0),xp-8,pad.t+plotH+20);
+  }
+  ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='11px DM Sans,monospace';
+  ctx.fillText('Altura dos retornos (m)',pad.l+plotW/2-70,H-2);
+}
+updateDist();
+
+// ══════════════════════════════════════════════════════════════════════
+// SCROLL REVEAL
+// ══════════════════════════════════════════════════════════════════════
+const reveals=document.querySelectorAll('.reveal');
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }});
+},{threshold:0.08});
+reveals.forEach(r=>obs.observe(r));
+
+// nav active
+const sections=document.querySelectorAll('section[id],div[id]');
+window.addEventListener('scroll',()=>{
+  let cur='';
+  sections.forEach(s=>{ if(window.scrollY>=s.offsetTop-80) cur=s.id; });
+  document.querySelectorAll('.nav-links a').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href')==='#'+cur);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Índices de Vegetação</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #1a3a2a;
+    --green-mid: #2d6a4f;
+    --green-bright: #52b788;
+    --green-light: #95d5b2;
+    --green-pale: #d8f3dc;
+    --amber: #e9c46a;
+    --rust: #e76f51;
+    --sky: #4cc9f0;
+    --sky-deep: #0077b6;
+    --cream: #fefae0;
+    --dark: #0d1b16;
+    --text-light: #e8f5ee;
+    --border: rgba(82,183,136,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text-light);
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ─────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(45,106,79,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 20% 80%, rgba(0,119,182,0.2) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 90% 10%, rgba(82,183,136,0.15) 0%, transparent 50%),
+      var(--dark);
+  }
+
+  /* animated grid lines */
+  .hero-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(82,183,136,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(82,183,136,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-content {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 60px 60px;
+    max-width: 900px;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 3px;
+    color: var(--green-bright);
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 6px 16px; border-radius: 2px;
+    margin-bottom: 32px;
+    width: fit-content;
+  }
+
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--green-bright);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:0.4; transform:scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 900;
+    line-height: 0.95;
+    margin-bottom: 24px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--green-bright);
+    display: block;
+  }
+
+  .hero-desc {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: rgba(232,245,238,0.65);
+    max-width: 580px;
+    margin-bottom: 48px;
+  }
+
+  .hero-stats {
+    display: flex; gap: 40px; flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+
+  .stat-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 2rem;
+    color: var(--green-bright);
+    font-weight: 500;
+  }
+
+  .stat-label {
+    font-size: 0.75rem; letter-spacing: 1px;
+    color: rgba(232,245,238,0.45);
+    text-transform: uppercase;
+  }
+
+  /* hero visual right side */
+  .hero-visual {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 45%;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+
+  .spectrum-tower {
+    width: 280px; height: 420px;
+    position: relative;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+
+  .spectrum-band {
+    flex: 1; border-radius: 2px;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center;
+    padding-left: 16px;
+  }
+
+  .spectrum-band::after {
+    content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+    width: 60%; opacity: 0.3;
+    background: linear-gradient(90deg, transparent, white);
+  }
+
+  .band-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 1px;
+    font-weight: 500;
+    z-index: 1;
+  }
+
+  /* scroll indicator */
+  .hero-scroll {
+    position: absolute; bottom: 32px; left: 60px;
+    z-index: 1;
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    color: rgba(232,245,238,0.3);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 40px; height: 1px; background: rgba(232,245,238,0.2);
+  }
+
+  /* ── SECTION COMMON ─────────────────── */
+  section {
+    position: relative;
+    padding: 80px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 4px;
+    color: var(--green-bright);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 48px;
+  }
+
+  /* ── THEORY BLOCK ───────────────────── */
+  .theory-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 60px;
+  }
+
+  .theory-card {
+    background: rgba(45,106,79,0.08);
+    border: 1px solid var(--border);
+    padding: 36px;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .theory-card:hover { background: rgba(45,106,79,0.15); }
+
+  .theory-card .icon {
+    font-size: 2rem; margin-bottom: 16px;
+  }
+
+  .theory-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    color: var(--green-light);
+  }
+
+  .theory-card p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: rgba(232,245,238,0.65);
+  }
+
+  /* ── EM DIVIDER ─────────────────────── */
+  .full-divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green-mid), transparent);
+    margin: 20px 0;
+  }
+
+  /* ── INDEX FORMULA CARDS ─────────────── */
+  .formula-section {
+    background: rgba(13,27,22,0.5);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 60px;
+  }
+
+  .formula-section .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .platform-toggle {
+    display: flex; gap: 0;
+    margin-bottom: 56px;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+
+  .toggle-btn {
+    padding: 12px 32px;
+    background: transparent;
+    border: none; outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; letter-spacing: 2px;
+    color: rgba(232,245,238,0.4);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .toggle-btn.active {
+    background: var(--green-mid);
+    color: white;
+  }
+
+  .toggle-btn:first-child { border-right: 1px solid var(--border); }
+
+  .indices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2px;
+  }
+
+  .index-card {
+    background: rgba(26,58,42,0.4);
+    border: 1px solid rgba(82,183,136,0.15);
+    padding: 0;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .index-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(82,183,136,0.4);
+  }
+
+  .index-header {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid rgba(82,183,136,0.1);
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+
+  .index-acronym {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--green-bright);
+    letter-spacing: 2px;
+  }
+
+  .index-name-full {
+    font-size: 0.72rem;
+    color: rgba(232,245,238,0.4);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+  }
+
+  .index-band-chips {
+    display: flex; flex-direction: column; gap: 3px; align-items: flex-end;
+  }
+
+  .chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 1.5px;
+    padding: 3px 8px;
+    border-radius: 1px;
+    text-transform: uppercase;
+  }
+
+  .chip-nir { background: rgba(233,196,106,0.2); color: var(--amber); border: 1px solid rgba(233,196,106,0.3); }
+  .chip-red { background: rgba(231,111,81,0.2); color: var(--rust); border: 1px solid rgba(231,111,81,0.3); }
+  .chip-swir { background: rgba(76,201,240,0.15); color: var(--sky); border: 1px solid rgba(76,201,240,0.3); }
+  .chip-blue { background: rgba(0,119,182,0.2); color: #90e0ef; border: 1px solid rgba(0,119,182,0.4); }
+  .chip-green-c { background: rgba(82,183,136,0.2); color: var(--green-bright); border: 1px solid rgba(82,183,136,0.3); }
+  .chip-re { background: rgba(180,160,80,0.2); color: #d4b24a; border: 1px solid rgba(180,160,80,0.3); }
+  .chip-rgb { background: rgba(200,200,200,0.1); color: #ccc; border: 1px solid rgba(200,200,200,0.2); }
+
+  .index-body { padding: 20px 28px 24px; }
+
+  .index-formula-box {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(82,183,136,0.15);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--green-light);
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  .index-desc {
+    font-size: 0.83rem;
+    line-height: 1.65;
+    color: rgba(232,245,238,0.6);
+  }
+
+  .index-range {
+    margin-top: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .range-bar {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: linear-gradient(90deg, #e76f51, #e9c46a, #52b788, #1a3a2a);
+    position: relative;
+  }
+
+  .range-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; color: rgba(232,245,238,0.35);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+
+  .index-use-tag {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 1px;
+  }
+
+  .tag-sat { background: rgba(0,119,182,0.2); color: var(--sky); border: 1px solid rgba(0,119,182,0.3); }
+  .tag-drone { background: rgba(82,183,136,0.2); color: var(--green-bright); border: 1px solid rgba(82,183,136,0.3); }
+  .tag-both { background: rgba(233,196,106,0.15); color: var(--amber); border: 1px solid rgba(233,196,106,0.25); }
+
+  /* hidden class */
+  .hidden { display: none !important; }
+
+  /* ── COMPARISON TABLE ───────────────── */
+  .comparison-wrap {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%; border-collapse: collapse;
+  }
+
+  thead tr {
+    border-bottom: 2px solid var(--green-mid);
+  }
+
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green-bright);
+    padding: 14px 20px;
+    text-align: left;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(82,183,136,0.08);
+    transition: background 0.2s;
+  }
+
+  tbody tr:hover { background: rgba(82,183,136,0.05); }
+
+  td {
+    padding: 14px 20px;
+    font-size: 0.83rem;
+    color: rgba(232,245,238,0.7);
+    line-height: 1.5;
+  }
+
+  td:first-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--green-light);
+    letter-spacing: 1px;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 6px;
+  }
+
+  .dot-sat { background: var(--sky-deep); }
+  .dot-drone { background: var(--green-bright); }
+  .dot-both { background: var(--amber); }
+
+  /* ── ELECTROMAGNETIC SPECTRUM ────────── */
+  .spectrum-section {
+    padding: 80px 60px;
+    max-width: 1200px; margin: 0 auto;
+  }
+
+  .spectrum-bar {
+    height: 80px; width: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+      #7b2d8b 0%,      /* UV */
+      #4361ee 8%,      /* Violet */
+      #4895ef 14%,     /* Blue 450nm */
+      #4cc9f0 20%,     /* Blue 490nm */
+      #06d6a0 30%,     /* Green 550nm */
+      #ffd166 46%,     /* Yellow-Green */
+      #ef476f 56%,     /* Red 680nm */
+      #b5179e 66%,     /* Red Edge 710nm */
+      #6a0572 72%,     /* NIR start */
+      #3a0538 84%,     /* NIR */
+      #1a0020 90%,     /* SWIR */
+      #0d0010 100%     /* MWIR+ */
+    );
+    position: relative;
+    margin-bottom: 20px;
+    overflow: visible;
+  }
+
+  .spectrum-tick {
+    position: absolute; top: 0; bottom: 0;
+    width: 1px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .spectrum-tick-label {
+    position: absolute; bottom: -24px;
+    transform: translateX(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; color: rgba(232,245,238,0.45);
+    white-space: nowrap;
+  }
+
+  .band-marker {
+    position: absolute; top: -10px;
+    transform: translateX(-50%);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .band-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-top: 56px;
+  }
+
+  .band-item {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 1px;
+    color: rgba(232,245,238,0.55);
+  }
+
+  .band-swatch {
+    width: 28px; height: 12px; border-radius: 2px;
+  }
+
+  /* ── SENSOR COMPARISON ───────────────── */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
+    margin-bottom: 60px;
+  }
+
+  .platform-card {
+    padding: 48px 40px;
+    position: relative; overflow: hidden;
+  }
+
+  .platform-card.satellite {
+    background: linear-gradient(135deg, rgba(0,119,182,0.12) 0%, rgba(0,0,0,0) 60%),
+    rgba(13,27,22,0.5);
+    border: 1px solid rgba(0,119,182,0.25);
+  }
+
+  .platform-card.drone {
+    background: linear-gradient(135deg, rgba(82,183,136,0.12) 0%, rgba(0,0,0,0) 60%),
+    rgba(13,27,22,0.5);
+    border: 1px solid rgba(82,183,136,0.25);
+  }
+
+  .platform-icon {
+    font-size: 3rem; margin-bottom: 20px;
+    display: block;
+  }
+
+  .platform-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  .platform-card.satellite .platform-title { color: var(--sky); }
+  .platform-card.drone .platform-title { color: var(--green-bright); }
+
+  .platform-subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    color: rgba(232,245,238,0.35);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .spec-list {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .spec-list li {
+    font-size: 0.85rem;
+    color: rgba(232,245,238,0.6);
+    line-height: 1.6;
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .spec-list li::before {
+    content: '→';
+    position: absolute; left: 0;
+    color: rgba(82,183,136,0.5);
+    font-family: monospace;
+  }
+
+  .platform-card.satellite .spec-list li::before { color: rgba(0,119,182,0.6); }
+
+  /* ── APPLICATIONS ─────────────────────── */
+  .apps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .app-card {
+    background: rgba(26,58,42,0.3);
+    border: 1px solid rgba(82,183,136,0.1);
+    padding: 32px;
+    transition: background 0.3s;
+  }
+
+  .app-card:hover { background: rgba(26,58,42,0.5); }
+
+  .app-icon { font-size: 2.2rem; margin-bottom: 16px; }
+
+  .app-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--green-light);
+    margin-bottom: 10px;
+  }
+
+  .app-desc {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: rgba(232,245,238,0.55);
+  }
+
+  /* ── FOOTER ─────────────────────────── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 60px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+
+  .footer-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--green-bright);
+  }
+
+  .footer-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 1px;
+    color: rgba(232,245,238,0.25);
+  }
+
+  /* ── RESPONSIVE ──────────────────────── */
+  @media (max-width: 768px) {
+    section, .formula-section, .spectrum-section { padding: 60px 24px; }
+    .hero-content { padding: 60px 24px 48px; }
+    .hero-visual { display: none; }
+    .theory-grid, .two-col, .apps-grid { grid-template-columns: 1fr; }
+    footer { padding: 32px 24px; }
+    .hero-scroll { left: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="hero-bg"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">Sensoriamento Remoto · Ecologia</div>
+
+    <h1>Índices de<br><em>Vegetação</em></h1>
+
+    <p class="hero-desc">
+      Ferramentas espectrais para análise quantitativa da cobertura vegetal — desde satélites de observação terrestre até drones de precisão agrícola.
+    </p>
+
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-num">20+</span>
+        <span class="stat-label">Índices catalogados</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">2</span>
+        <span class="stat-label">Plataformas</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">10+</span>
+        <span class="stat-label">Bandas espectrais</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: spectrum bands illustration -->
+  <div class="hero-visual">
+    <div style="position:relative; width:260px;">
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <!-- Band bars -->
+        <div style="height:36px; background:linear-gradient(90deg,#4361ee,#4895ef); border-radius:2px; display:flex;align-items:center;padding:0 14px;"><span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.8);">BLUE · 450–490 nm</span></div>
+        <div style="height:36px; background:linear-gradient(90deg,#06d6a0,#52b788); border-radius:2px; display:flex;align-items:center;padding:0 14px;"><span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(0,0,0,0.7);">GREEN · 520–600 nm</span></div>
+        <div style="height:36px; background:linear-gradient(90deg,#ef476f,#e76f51); border-radius:2px; display:flex;align-items:center;padding:0 14px;"><span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.85);">RED · 630–690 nm</span></div>
+        <div style="height:36px; background:linear-gradient(90deg,#b5179e,#9a0e8a); border-radius:2px; display:flex;align-items:center;padding:0 14px;"><span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.85);">RED EDGE · 700–730 nm</span></div>
+        <div style="height:48px; background:linear-gradient(90deg,#6a0572,#3a0550); border-radius:2px; display:flex;align-items:center;padding:0 14px;"><span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.85);">NIR · 760–900 nm</span></div>
+        <div style="height:36px; background:linear-gradient(90deg,#1a0020,#0d0015); border-radius:2px; display:flex;align-items:center;padding:0 14px; border:1px solid rgba(255,255,255,0.1);"><span style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.6);">SWIR · 1.4–2.5 μm</span></div>
+      </div>
+      <div style="margin-top:20px; padding:16px; border:1px solid rgba(82,183,136,0.2); border-radius:2px; background:rgba(0,0,0,0.3);">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--green-bright);margin-bottom:8px;">PRINCÍPIO BASE</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(232,245,238,0.75);line-height:1.6;">
+          Vegetação saudável<br>↑ Reflete NIR<br>↓ Absorve RED
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    Role para explorar
+  </div>
+</div>
+
+<!-- ══════════════════ ARCABOUÇO TEÓRICO ══════════════════ -->
+<section>
+  <div class="section-label">01 — Fundamentos</div>
+  <h2 class="section-title">Arcabouço Teórico</h2>
+
+  <div class="theory-grid">
+    <div class="theory-card">
+      <div class="icon">🌿</div>
+      <h3>O que são índices de vegetação?</h3>
+      <p>Índices de vegetação (IV) são combinações matemáticas de reflectâncias em diferentes comprimentos de onda, projetadas para realçar propriedades biofísicas da cobertura vegetal e minimizar efeitos externos como solo, atmosfera e geometria de iluminação. São amplamente utilizados no monitoramento ambiental, agricultura de precisão e manejo florestal.</p>
+    </div>
+
+    <div class="theory-card">
+      <div class="icon">🔬</div>
+      <h3>Base espectral da vegetação</h3>
+      <p>A clorofila absorve fortemente no vermelho (~670 nm) para fotossíntese, enquanto a estrutura celular mesofílica reflete intensamente no infravermelho próximo (NIR, 760–900 nm). Essa diferença pronunciada entre reflectância no NIR e absorção no RED é o princípio fundamental da maioria dos índices de vegetação.</p>
+    </div>
+
+    <div class="theory-card">
+      <div class="icon">📡</div>
+      <h3>Sensores multiespectrais</h3>
+      <p>Sensores a bordo de satélites (Landsat, Sentinel-2, MODIS) e drones equipados com câmeras multiespectrais capturam reflectâncias em múltiplas bandas. A resolução espacial, espectral e temporal varia enormemente entre plataformas, determinando quais índices são mais adequados para cada aplicação e escala de análise.</p>
+    </div>
+
+    <div class="theory-card">
+      <div class="icon">📐</div>
+      <h3>Correções e limitações</h3>
+      <p>Índices baseados em satélites exigem correção atmosférica rigorosa (conversão de DN para reflectância de superfície). Drones, operando abaixo das nuvens, têm menor influência atmosférica, mas requerem calibração radiométrica com painéis de referência. Efeitos de solo exposto e saturação em altos IAF são limitações comuns a ambas as plataformas.</p>
+    </div>
+  </div>
+
+  <!-- Chlorophyll reflectance curve illustration -->
+  <div style="border:1px solid var(--border); border-radius:2px; padding:36px; background:rgba(26,58,42,0.2);">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--green-bright);margin-bottom:24px;text-transform:uppercase;">Curva Típica de Reflectância Foliar</div>
+    <div style="position:relative; height:160px; width:100%;">
+      <!-- SVG curve -->
+      <svg viewBox="0 0 800 160" preserveAspectRatio="none" style="width:100%;height:100%;">
+        <!-- grid -->
+        <line x1="0" y1="40" x2="800" y2="40" stroke="rgba(82,183,136,0.08)" stroke-width="1"/>
+        <line x1="0" y1="80" x2="800" y2="80" stroke="rgba(82,183,136,0.08)" stroke-width="1"/>
+        <line x1="0" y1="120" x2="800" y2="120" stroke="rgba(82,183,136,0.08)" stroke-width="1"/>
+        <!-- Healthy plant curve (green) -->
+        <path d="M 0,155 C 40,150 80,140 120,135 C 160,130 180,120 200,125 C 220,130 240,110 260,95 C 280,80 300,70 320,75 C 340,80 360,130 380,140 C 400,150 420,155 440,30 C 460,10 480,8 500,8 C 520,8 540,10 560,12 C 580,14 600,20 620,30 C 640,40 660,70 680,90 C 700,110 720,120 740,125 C 760,130 780,135 800,138"
+              fill="none" stroke="#52b788" stroke-width="2.5" stroke-linejoin="round"/>
+        <!-- Stressed plant curve (yellow) -->
+        <path d="M 0,155 C 40,152 80,148 120,145 C 160,142 180,138 200,140 C 220,142 240,128 260,118 C 280,108 300,100 320,105 C 340,110 360,140 380,148 C 400,155 420,157 440,60 C 460,30 480,28 500,30 C 520,32 540,35 560,38 C 580,42 600,48 620,58 C 640,68 660,90 680,105 C 700,118 720,128 740,133 C 760,137 780,141 800,143"
+              fill="none" stroke="#e9c46a" stroke-width="2.5" stroke-dasharray="5,3" stroke-linejoin="round"/>
+
+        <!-- Zone labels -->
+        <text x="100" y="20" font-family="DM Mono, monospace" font-size="9" fill="rgba(82,183,136,0.5)" letter-spacing="1">BLUE</text>
+        <text x="230" y="20" font-family="DM Mono, monospace" font-size="9" fill="rgba(82,183,136,0.5)" letter-spacing="1">GREEN</text>
+        <text x="340" y="20" font-family="DM Mono, monospace" font-size="9" fill="rgba(231,111,81,0.7)" letter-spacing="1">RED</text>
+        <text x="450" y="20" font-family="DM Mono, monospace" font-size="9" fill="rgba(180,160,80,0.7)" letter-spacing="1">RED-EDGE</text>
+        <text x="570" y="20" font-family="DM Mono, monospace" font-size="9" fill="rgba(181,23,158,0.7)" letter-spacing="1">NIR</text>
+        <text x="720" y="20" font-family="DM Mono, monospace" font-size="9" fill="rgba(76,201,240,0.5)" letter-spacing="1">SWIR</text>
+
+        <!-- Vertical dividers -->
+        <line x1="185" y1="0" x2="185" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="305" y1="0" x2="305" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="420" y1="0" x2="420" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="530" y1="0" x2="530" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="680" y1="0" x2="680" y2="160" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+        <!-- NIR plateau annotation -->
+        <line x1="470" y1="10" x2="470" y2="50" stroke="rgba(82,183,136,0.4)" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="430" y="62" font-family="DM Mono, monospace" font-size="8" fill="rgba(82,183,136,0.6)">↑ Alta reflectância</text>
+        <text x="440" y="73" font-family="DM Mono, monospace" font-size="8" fill="rgba(82,183,136,0.6)">NIR (saudável)</text>
+
+        <!-- RED absorption annotation -->
+        <line x1="355" y1="140" x2="355" y2="100" stroke="rgba(231,111,81,0.4)" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="300" y="95" font-family="DM Mono, monospace" font-size="8" fill="rgba(231,111,81,0.6)">↓ Absorção RED</text>
+        <text x="308" y="106" font-family="DM Mono, monospace" font-size="8" fill="rgba(231,111,81,0.6)">(clorofila)</text>
+      </svg>
+    </div>
+    <!-- Legend -->
+    <div style="display:flex;gap:28px;margin-top:12px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;color:rgba(232,245,238,0.5);">
+        <div style="width:24px;height:2px;background:#52b788;"></div>Vegetação saudável
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;color:rgba(232,245,238,0.5);">
+        <div style="width:24px;height:2px;background:#e9c46a;border-top:2px dashed #e9c46a;"></div>Vegetação estressada
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="full-divider" style="max-width:1200px;margin:0 auto;"></div>
+
+<!-- ══════════════════ PLATAFORMAS ══════════════════ -->
+<section style="padding-top:60px;">
+  <div class="section-label">02 — Plataformas</div>
+  <h2 class="section-title">Satélites vs Drones</h2>
+
+  <div class="two-col">
+    <div class="platform-card satellite">
+      <span class="platform-icon">🛰️</span>
+      <div class="platform-title">Satélites</div>
+      <div class="platform-subtitle">Observação orbital</div>
+      <ul class="spec-list">
+        <li>Resolução espacial de 10 m (Sentinel-2) a 30 m (Landsat) para multitemporal, até &lt;1 m para comerciais (WorldView, Pleiades)</li>
+        <li>Cobertura global e revisita periódica (5–16 dias) — ideal para monitoramento em larga escala</li>
+        <li>Maior influência atmosférica; exige correção para reflectância de superfície</li>
+        <li>Bandas espectrais: Blue, Green, Red, Red Edge, NIR, SWIR1, SWIR2 (até 13 bandas no Sentinel-2)</li>
+        <li>Sensores: Landsat OLI, Sentinel-2 MSI, MODIS, SPOT, WorldView-3</li>
+        <li>Ideal para índices que utilizam SWIR (umidade) e múltiplas bandas NIR estreitas</li>
+      </ul>
+    </div>
+
+    <div class="platform-card drone">
+      <span class="platform-icon">🚁</span>
+      <div class="platform-title">Drones</div>
+      <div class="platform-subtitle">Plataforma VANT / UAS</div>
+      <ul class="spec-list">
+        <li>Resolução espacial centimétrica (1–10 cm) — detecta variabilidade intracanopy e danos pontuais</li>
+        <li>Flexibilidade temporal; levantamentos sob demanda em qualquer data/hora</li>
+        <li>Menor influência atmosférica; calibração radiométrica com painéis de referência é essencial</li>
+        <li>Câmeras típicas: Micasense RedEdge/Altum (5–6 bandas), Parrot Sequoia, sensores RGB modificados</li>
+        <li>Bandas disponíveis: RGB (câmeras comuns), Blue, Green, Red, Red Edge, NIR</li>
+        <li>SWIR raramente disponível; índices baseados em RGB visível têm ampla aplicação</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FÓRMULAS ══════════════════ -->
+<div class="formula-section">
+  <div class="inner">
+    <div class="section-label">03 — Fórmulas & Aplicações</div>
+    <h2 class="section-title">Índices por Plataforma</h2>
+
+    <div class="platform-toggle">
+      <button class="toggle-btn active" onclick="filterCards('all')">Todos</button>
+      <button class="toggle-btn" onclick="filterCards('satellite')">🛰️ Satélite</button>
+      <button class="toggle-btn" onclick="filterCards('drone')">🚁 Drone</button>
+    </div>
+
+    <div class="indices-grid" id="indicesGrid">
+
+      <!-- ── NDVI ── -->
+      <div class="index-card" data-platform="both">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">NDVI</div>
+            <div class="index-name-full">Normalized Difference<br>Vegetation Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-red">RED</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( NIR − RED ) / ( NIR + RED )</div>
+          <div class="index-desc">O índice mais utilizado globalmente. Quantifica a densidade e vigor da vegetação. Satura em vegetações densas (IAF &gt; 3) e é sensível ao solo em coberturas esparsas. Aplicável em satélites (Landsat, Sentinel) e drones com banda NIR.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-both">Satélite + Drone</span>
+        </div>
+      </div>
+
+      <!-- ── EVI ── -->
+      <div class="index-card" data-platform="satellite">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">EVI</div>
+            <div class="index-name-full">Enhanced<br>Vegetation Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-red">RED</span>
+            <span class="chip chip-blue">BLUE</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">2.5 × (NIR−RED) / (NIR + 6RED − 7.5BLUE + 1)</div>
+          <div class="index-desc">Desenvolvido para o sensor MODIS/VIIRS. Utiliza a banda BLUE para correção da influência aerossol atmosférico. Reduz a saturação em florestas densas (Amazônia) e é menos sensível ao solo exposto que o NDVI. Amplamente utilizado em satélites ópticos de médio/baixo custo espacial.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-sat">Satélite</span>
+        </div>
+      </div>
+
+      <!-- ── SAVI ── -->
+      <div class="index-card" data-platform="satellite">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">SAVI</div>
+            <div class="index-name-full">Soil-Adjusted<br>Vegetation Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-red">RED</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">[(NIR−RED) / (NIR+RED+L)] × (1+L)</div>
+          <div class="index-desc">Fator de ajuste de solo L (0,5 por padrão) minimiza o efeito do brilho do solo em regiões áridas/semiáridas. Ideal para monitoramento de pastagens, savanas e cerrado em imagens Landsat e Sentinel-2. Menos aplicado em drones por conta da resolução altíssima.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-sat">Satélite</span>
+        </div>
+      </div>
+
+      <!-- ── NDWI ── -->
+      <div class="index-card" data-platform="satellite">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">NDWI</div>
+            <div class="index-name-full">Normalized Difference<br>Water Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-swir">SWIR</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( NIR − SWIR ) / ( NIR + SWIR )</div>
+          <div class="index-desc">Detecta conteúdo de água na vegetação e corpos hídricos. Fundamental no monitoramento de estresse hídrico em culturas e na detecção de inundações. Exige banda SWIR (~1,6 μm ou ~2,2 μm), disponível em Landsat OLI e Sentinel-2, mas raramente em drones.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-sat">Satélite</span>
+        </div>
+      </div>
+
+      <!-- ── NBR ── -->
+      <div class="index-card" data-platform="satellite">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">NBR</div>
+            <div class="index-name-full">Normalized Burn<br>Ratio</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-swir">SWIR2</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( NIR − SWIR2 ) / ( NIR + SWIR2 )</div>
+          <div class="index-desc">Desenvolvido pela USGS para mapeamento de áreas queimadas e severidade do fogo. A banda SWIR2 (~2,2 μm) é sensível à umidade do solo e cinzas. Aplicado em Landsat e Sentinel-2 para mapeamento de cicatrizes de fogo no Cerrado e Amazônia.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-sat">Satélite</span>
+        </div>
+      </div>
+
+      <!-- ── NDRE ── -->
+      <div class="index-card" data-platform="both">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">NDRE</div>
+            <div class="index-name-full">Normalized Difference<br>Red Edge Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-re">RE</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( NIR − RedEdge ) / ( NIR + RedEdge )</div>
+          <div class="index-desc">A banda Red Edge (~720 nm) é altamente sensível ao teor de clorofila e ao estresse precoce da planta, antes que o NDVI detecte alterações visíveis. Saturação muito menor em altos IAF. Disponível em Sentinel-2 (B5/B6/B7) e câmeras Micasense para drones.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-both">Satélite + Drone</span>
+        </div>
+      </div>
+
+      <!-- ── MSAVI ── -->
+      <div class="index-card" data-platform="satellite">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">MSAVI2</div>
+            <div class="index-name-full">Modified Soil-Adjusted<br>Vegetation Index 2</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-red">RED</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">[2×NIR+1 − √((2NIR+1)²−8(NIR−RED))] / 2</div>
+          <div class="index-desc">Elimina a necessidade do fator L fixo do SAVI aplicando ajuste dinâmico ao solo. Melhor performance em vegetações esparsas e solos brilhantes. Amplamente usado em análises de Landsat para Caatinga e áreas agrícolas degradadas.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-sat">Satélite</span>
+        </div>
+      </div>
+
+      <!-- ── GNDVI ── -->
+      <div class="index-card" data-platform="both">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">GNDVI</div>
+            <div class="index-name-full">Green Normalized Difference<br>Vegetation Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-green-c">GREEN</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( NIR − GREEN ) / ( NIR + GREEN )</div>
+          <div class="index-desc">Substitui a banda RED pela GREEN, tornando-se mais sensível à concentração de clorofila e ao conteúdo de nitrogênio. Satura menos que o NDVI em culturas densas. Amplamente usado em agricultura de precisão com drones e satélites Sentinel-2 (banda B3).</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-both">Satélite + Drone</span>
+        </div>
+      </div>
+
+      <!-- ── VARI ── -->
+      <div class="index-card" data-platform="drone">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">VARI</div>
+            <div class="index-name-full">Visible Atmospherically<br>Resistant Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-red">RED</span>
+            <span class="chip chip-green-c">GREEN</span>
+            <span class="chip chip-blue">BLUE</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( GREEN − RED ) / ( GREEN + RED − BLUE )</div>
+          <div class="index-desc">Utiliza apenas bandas do visível (RGB), dispensando sensor NIR. Projetado para câmeras convencionais modificadas (pórfiro BLUE→NIR) ou drones RGB comuns. Resistente a variações de iluminação. Excelente custo-benefício em levantamentos com drones de consumo como DJI Phantom.</div>
+          <div class="index-range">
+            <span class="range-label">−0.6</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+0.6</span>
+          </div>
+          <span class="index-use-tag tag-drone">Drone RGB</span>
+        </div>
+      </div>
+
+      <!-- ── ExG ── -->
+      <div class="index-card" data-platform="drone">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">ExG</div>
+            <div class="index-name-full">Excess Green<br>Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-rgb">RGB</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">2G − R − B</div>
+          <div class="index-desc">Índice simples e eficiente baseado em imagens RGB. Maximiza a contribuição do canal verde e minimiza solo/fundo. Muito usado em análise de cobertura vegetal de gramíneas e culturas anuais em estágios iniciais. Adequado para drones sem câmera multiespectral. Sensível à normalização dos canais.</div>
+          <div class="index-range">
+            <span class="range-label">negativo</span>
+            <div class="range-bar"></div>
+            <span class="range-label">positivo</span>
+          </div>
+          <span class="index-use-tag tag-drone">Drone RGB</span>
+        </div>
+      </div>
+
+      <!-- ── NGRDI ── -->
+      <div class="index-card" data-platform="drone">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">NGRDI</div>
+            <div class="index-name-full">Normalized Green-Red<br>Difference Index</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-green-c">GREEN</span>
+            <span class="chip chip-red">RED</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( GREEN − RED ) / ( GREEN + RED )</div>
+          <div class="index-desc">Índice RGB normalizado de alta simplicidade. Diferencia vegetação jovem (alto verde relativo) de vegetação madura ou senescente. Usado em drones RGB para avaliação de emergência de culturas. Correlaciona bem com biomassa fresca em pastagens. Não requer câmera multiespectral dedicada.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-drone">Drone RGB</span>
+        </div>
+      </div>
+
+      <!-- ── NDVI + Drone ── -->
+      <div class="index-card" data-platform="drone">
+        <div class="index-header">
+          <div>
+            <div class="index-acronym">NDVI</div>
+            <div class="index-name-full">Aplicação em<br>Drone Multiespectral</div>
+          </div>
+          <div class="index-band-chips">
+            <span class="chip chip-nir">NIR</span>
+            <span class="chip chip-red">RED</span>
+          </div>
+        </div>
+        <div class="index-body">
+          <div class="index-formula-box">( NIR − RED ) / ( NIR + RED )</div>
+          <div class="index-desc">Quando calculado em drones com câmera multiespectral (Micasense, Sentera), o NDVI atinge resolução centimétrica. Permite mapear variabilidade intraparcelares, localizar plantas doentes individuais ou zonas de manejo de precisão em nível de talhão. Exige calibração com painel lambertiano antes e após o voo.</div>
+          <div class="index-range">
+            <span class="range-label">−1</span>
+            <div class="range-bar"></div>
+            <span class="range-label">+1</span>
+          </div>
+          <span class="index-use-tag tag-drone">Drone Multiespectral</span>
+        </div>
+      </div>
+
+    </div><!-- /indices-grid -->
+  </div>
+</div>
+
+<!-- ══════════════════ TABELA COMPARATIVA ══════════════════ -->
+<section>
+  <div class="section-label">04 — Comparativo</div>
+  <h2 class="section-title">Tabela de Referência Rápida</h2>
+
+  <div class="comparison-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Índice</th>
+          <th>Bandas Necessárias</th>
+          <th>Plataforma</th>
+          <th>Aplicação Principal</th>
+          <th>Limitação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>NDVI</td>
+          <td>NIR, RED</td>
+          <td><span class="dot dot-both"></span>Ambas</td>
+          <td>Biomassa, vigor geral</td>
+          <td>Satura em IAF alto</td>
+        </tr>
+        <tr>
+          <td>EVI</td>
+          <td>NIR, RED, BLUE</td>
+          <td><span class="dot dot-sat"></span>Satélite</td>
+          <td>Florestas tropicais densas</td>
+          <td>Requer BLUE calibrado</td>
+        </tr>
+        <tr>
+          <td>SAVI</td>
+          <td>NIR, RED</td>
+          <td><span class="dot dot-sat"></span>Satélite</td>
+          <td>Savanas, áreas áridas</td>
+          <td>Fator L empírico</td>
+        </tr>
+        <tr>
+          <td>NDWI</td>
+          <td>NIR, SWIR</td>
+          <td><span class="dot dot-sat"></span>Satélite</td>
+          <td>Estresse hídrico, inundação</td>
+          <td>SWIR indisponível em drones</td>
+        </tr>
+        <tr>
+          <td>NBR</td>
+          <td>NIR, SWIR2</td>
+          <td><span class="dot dot-sat"></span>Satélite</td>
+          <td>Cicatrizes de fogo</td>
+          <td>SWIR2 necessário</td>
+        </tr>
+        <tr>
+          <td>NDRE</td>
+          <td>NIR, Red Edge</td>
+          <td><span class="dot dot-both"></span>Ambas</td>
+          <td>Teor de clorofila, N foliar</td>
+          <td>Sensor RE especializado</td>
+        </tr>
+        <tr>
+          <td>GNDVI</td>
+          <td>NIR, GREEN</td>
+          <td><span class="dot dot-both"></span>Ambas</td>
+          <td>Nitrogênio, clorofila</td>
+          <td>Menos sensível que NDRE</td>
+        </tr>
+        <tr>
+          <td>MSAVI2</td>
+          <td>NIR, RED</td>
+          <td><span class="dot dot-sat"></span>Satélite</td>
+          <td>Solos brilhantes, Caatinga</td>
+          <td>Cálculo mais complexo</td>
+        </tr>
+        <tr>
+          <td>VARI</td>
+          <td>RED, GREEN, BLUE</td>
+          <td><span class="dot dot-drone"></span>Drone RGB</td>
+          <td>Cobertura vegetal rápida</td>
+          <td>Sem NIR; menor precisão</td>
+        </tr>
+        <tr>
+          <td>ExG</td>
+          <td>RED, GREEN, BLUE</td>
+          <td><span class="dot dot-drone"></span>Drone RGB</td>
+          <td>Gramíneas, culturas anuais</td>
+          <td>Sensível à normalização</td>
+        </tr>
+        <tr>
+          <td>NGRDI</td>
+          <td>GREEN, RED</td>
+          <td><span class="dot dot-drone"></span>Drone RGB</td>
+          <td>Emergência, pastagens</td>
+          <td>Sem NIR; limitado</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="full-divider" style="max-width:1200px;margin:0 auto;"></div>
+
+<!-- ══════════════════ APLICAÇÕES ══════════════════ -->
+<section>
+  <div class="section-label">05 — Aplicações</div>
+  <h2 class="section-title">Campos de Uso</h2>
+
+  <div class="apps-grid">
+    <div class="app-card">
+      <div class="app-icon">🌾</div>
+      <div class="app-title">Agricultura de Precisão</div>
+      <div class="app-desc">NDRE e GNDVI em drones multiespectrais mapeiam variabilidade de nitrogênio e clorofila em nível de talhão, orientando aplicação variável de fertilizantes e defensivos.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">🌳</div>
+      <div class="app-title">Monitoramento Florestal</div>
+      <div class="app-desc">EVI e NDVI em satélites Sentinel-2 e Landsat detectam desmatamento, degradação florestal e fenologia em áreas extensas da Amazônia, Cerrado e Mata Atlântica.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">🔥</div>
+      <div class="app-title">Mapeamento de Queimadas</div>
+      <div class="app-desc">NBR pré e pós-fogo em Landsat quantifica a extensão e severidade de incêndios. Delta NBR (dNBR) é padrão internacional para avaliação de impacto de fogo.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">💧</div>
+      <div class="app-title">Estresse Hídrico</div>
+      <div class="app-desc">NDWI em Sentinel-2 identifica culturas em estresse hídrico antes da queda do NDVI. Integrado com dados de temperatura de superfície para índices de evapotranspiração.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">🌿</div>
+      <div class="app-title">Restauração Ecológica</div>
+      <div class="app-desc">NDVI e VARI em drones monitoram o desenvolvimento de mudas em projetos de restauração, com resolução centimétrica detectando indivíduos e zonas de falha no plantio.</div>
+    </div>
+    <div class="app-card">
+      <div class="app-icon">📊</div>
+      <div class="app-title">Inventários e IAF</div>
+      <div class="app-desc">Modelos empíricos correlacionam NDVI, NDRE e EVI com o Índice de Área Foliar (IAF), permitindo estimativas de produtividade primária líquida e estoque de carbono.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FOOTER ══════════════════ -->
+<footer>
+  <div class="footer-brand">Índices de Vegetação</div>
+  <div class="footer-note">Material didático · Sensoriamento Remoto aplicado à Ecologia</div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(232,245,238,0.25);">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--sky-deep);display:inline-block;"></span>Satélite
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(232,245,238,0.25);">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--green-bright);display:inline-block;"></span>Drone
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(232,245,238,0.25);">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;"></span>Ambas
+    </div>
+  </div>
+</footer>
+
+<script>
+  function filterCards(platform) {
+    const cards = document.querySelectorAll('.index-card');
+    const buttons = document.querySelectorAll('.toggle-btn');
+
+    buttons.forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    cards.forEach(card => {
+      const p = card.dataset.platform;
+      if (platform === 'all') {
+        card.classList.remove('hidden');
+      } else if (platform === 'satellite') {
+        card.classList.toggle('hidden', p === 'drone');
+      } else if (platform === 'drone') {
+        card.classList.toggle('hidden', p === 'satellite');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Índice de Diversidade de Shannon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .concept {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .concept h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .formula {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            font-size: 1.2em;
+            border: 2px solid #e0e0e0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .visualization {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        #populacao {
+            width: 100%;
+            height: 400px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            position: relative;
+        }
+
+        .species-dot {
+            position: absolute;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .species-dot:hover {
+            transform: scale(1.3);
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .result-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .result-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .calculations {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .calculations h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .table-wrapper {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .step-calculation {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌳 Índice de Diversidade de Shannon - Florestas Tropicais 🌳</h1>
+        <p class="subtitle">Simulador de Diversidade de Espécies Arbóreas (Área: 1 hectare)</p>
+
+        <div class="concept">
+            <h2>📚 Conceito de Diversidade de Shannon em Florestas Tropicais</h2>
+            <p>O <strong>Índice de Diversidade de Shannon (H')</strong> é uma medida que quantifica a diversidade de espécies arbóreas em uma comunidade florestal. Ele considera tanto a <strong>riqueza de espécies</strong> (número de espécies diferentes) quanto a <strong>equitabilidade</strong> (distribuição dos indivíduos entre as espécies).</p>
+            
+            <p style="margin-top: 15px;">Em <strong>florestas tropicais</strong>, o índice de Shannon é particularmente importante pois essas áreas apresentam <strong>altíssima biodiversidade</strong>, podendo conter centenas de espécies arbóreas em um único hectare.</p>
+            
+            <div class="formula">
+                H' = -Σ (pᵢ × ln(pᵢ))
+            </div>
+            
+            <p style="margin-top: 15px;"><strong>Onde:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                <li><strong>H'</strong> = Índice de Diversidade de Shannon</li>
+                <li><strong>pᵢ</strong> = Proporção de indivíduos da espécie i em relação ao total</li>
+                <li><strong>ln</strong> = Logaritmo natural</li>
+                <li><strong>Σ</strong> = Somatório para todas as espécies</li>
+            </ul>
+            
+            <p style="margin-top: 15px;"><strong>Interpretação para Florestas Tropicais:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                <li><strong>H' < 2.0:</strong> Baixa diversidade (floresta degradada ou plantio)</li>
+                <li><strong>H' = 2.0 - 3.5:</strong> Diversidade média</li>
+                <li><strong>H' > 3.5:</strong> Alta diversidade (típico de floresta tropical madura)</li>
+                <li><strong>H' > 4.5:</strong> Diversidade muito alta (floresta tropical primária)</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="numEspecies">Número de Espécies (até 400):</label>
+                <input type="number" id="numEspecies" min="5" max="400" value="50">
+            </div>
+            <div class="input-group">
+                <label for="numIndividuos">Total de Indivíduos (até 2000):</label>
+                <input type="number" id="numIndividuos" min="10" max="2000" value="500">
+            </div>
+            <button onclick="simular()">🔄 Simular Floresta</button>
+        </div>
+
+        <div class="visualization">
+            <h3 style="margin-bottom: 15px; color: #333;">Visualização da População</h3>
+            <div id="populacao"></div>
+            <div class="legend" id="legenda"></div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <div class="result-card">
+                <h3>Total de Indivíduos</h3>
+                <div class="result-value" id="totalIndividuos">0</div>
+            </div>
+            <div class="result-card">
+                <h3>Número de Espécies</h3>
+                <div class="result-value" id="numEspeciesResult">0</div>
+            </div>
+            <div class="result-card">
+                <h3>Índice de Shannon (H')</h3>
+                <div class="result-value" id="shannon">0</div>
+            </div>
+        </div>
+
+        <div class="calculations" id="calculations" style="display: none;">
+            <h3>📊 Cálculos Detalhados (ordenado por abundância)</h3>
+            <div class="table-wrapper">
+                <table id="tabelaCalculo">
+                    <thead>
+                        <tr>
+                            <th>Espécie</th>
+                            <th>Indivíduos (nᵢ)</th>
+                            <th>Proporção (pᵢ)</th>
+                            <th>ln(pᵢ)</th>
+                            <th>pᵢ × ln(pᵢ)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela"></tbody>
+                </table>
+            </div>
+
+            <div class="step-calculation">
+                <h4>Passo a Passo:</h4>
+                <div id="passoAPasso"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cores = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+            '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
+            '#E56B6F', '#6A4C93', '#B5838D', '#FFB4A2', '#A8DADC'
+        ];
+
+        // Função para gerar cor única para cada espécie (até 400)
+        function gerarCor(index) {
+            if (index < cores.length) {
+                return cores[index];
+            }
+            // Gerar cores HSL para espécies adicionais
+            const hue = (index * 137.508) % 360; // Ângulo dourado para distribuição uniforme
+            const saturation = 60 + (index % 40);
+            const lightness = 45 + (index % 30);
+            return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        }
+
+        function simular() {
+            const numEspecies = parseInt(document.getElementById('numEspecies').value);
+            const totalIndividuos = parseInt(document.getElementById('numIndividuos').value);
+            
+            if (numEspecies < 5 || numEspecies > 400) {
+                alert('Por favor, escolha entre 5 e 400 espécies.');
+                return;
+            }
+            
+            if (totalIndividuos < 10 || totalIndividuos > 2000) {
+                alert('Por favor, escolha entre 10 e 2000 indivíduos.');
+                return;
+            }
+
+            const populacao = [];
+            
+            // Criar espécies com nomes científicos simulados
+            for (let i = 0; i < numEspecies; i++) {
+                const genero = String.fromCharCode(65 + (i % 26));
+                const especie = String.fromCharCode(97 + ((i * 7) % 26));
+                populacao.push({
+                    especie: `${genero}. ${especie}${Math.floor(i / 26) > 0 ? Math.floor(i / 26) : ''}`,
+                    cor: gerarCor(i),
+                    individuos: []
+                });
+            }
+
+            // Distribuir indivíduos usando distribuição log-normal (típica de florestas tropicais)
+            // Algumas espécies são raras, outras são comuns
+            const distribuicao = [];
+            for (let i = 0; i < numEspecies; i++) {
+                // Distribuição log-normal simulada
+                const raridade = Math.pow(Math.random(), 2.5); // Favorece valores baixos (espécies raras)
+                distribuicao.push(raridade);
+            }
+            
+            const somaDistribuicao = distribuicao.reduce((a, b) => a + b, 0);
+            
+            // Distribuir indivíduos proporcionalmente
+            let individuosDistribuidos = 0;
+            for (let i = 0; i < numEspecies - 1; i++) {
+                const proporcao = distribuicao[i] / somaDistribuicao;
+                const numIndividuosEspecie = Math.max(1, Math.round(totalIndividuos * proporcao));
+                individuosDistribuidos += numIndividuosEspecie;
+                
+                for (let j = 0; j < numIndividuosEspecie; j++) {
+                    populacao[i].individuos.push({
+                        x: Math.random() * 95 + 2.5,
+                        y: Math.random() * 95 + 2.5
+                    });
+                }
+            }
+            
+            // Última espécie recebe o restante
+            const restante = totalIndividuos - individuosDistribuidos;
+            for (let j = 0; j < restante; j++) {
+                populacao[numEspecies - 1].individuos.push({
+                    x: Math.random() * 95 + 2.5,
+                    y: Math.random() * 95 + 2.5
+                });
+            }
+
+            // Filtrar espécies sem indivíduos
+            const populacaoFinal = populacao.filter(esp => esp.individuos.length > 0);
+
+            visualizarPopulacao(populacaoFinal);
+            calcularShannon(populacaoFinal, totalIndividuos);
+
+            document.getElementById('results').style.display = 'grid';
+            document.getElementById('calculations').style.display = 'block';
+        }
+
+        function visualizarPopulacao(populacao) {
+            const container = document.getElementById('populacao');
+            const legenda = document.getElementById('legenda');
+            container.innerHTML = '';
+            legenda.innerHTML = '';
+
+            // Ajustar tamanho dos pontos baseado no número de indivíduos
+            const totalIndividuos = populacao.reduce((sum, esp) => sum + esp.individuos.length, 0);
+            let tamanhoPonto = 12;
+            if (totalIndividuos > 500) tamanhoPonto = 8;
+            if (totalIndividuos > 1000) tamanhoPonto = 6;
+            if (totalIndividuos > 1500) tamanhoPonto = 4;
+
+            populacao.forEach(esp => {
+                esp.individuos.forEach(ind => {
+                    const dot = document.createElement('div');
+                    dot.className = 'species-dot';
+                    dot.style.left = ind.x + '%';
+                    dot.style.top = ind.y + '%';
+                    dot.style.width = tamanhoPonto + 'px';
+                    dot.style.height = tamanhoPonto + 'px';
+                    dot.style.backgroundColor = esp.cor;
+                    dot.style.border = '1px solid rgba(0,0,0,0.3)';
+                    dot.title = `${esp.especie} (${esp.individuos.length} indivíduos)`;
+                    container.appendChild(dot);
+                });
+            });
+
+            // Mostrar apenas as 20 espécies mais abundantes na legenda
+            const especiesOrdenadas = [...populacao].sort((a, b) => b.individuos.length - a.individuos.length);
+            const especiesMostrar = especiesOrdenadas.slice(0, Math.min(20, populacao.length));
+            
+            especiesMostrar.forEach(esp => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background-color: ${esp.cor};"></div>
+                    <span><strong>${esp.especie}</strong> (${esp.individuos.length} ind.)</span>
+                `;
+                legenda.appendChild(legendItem);
+            });
+
+            if (populacao.length > 20) {
+                const maisEspecies = document.createElement('div');
+                maisEspecies.style.marginTop = '10px';
+                maisEspecies.style.fontStyle = 'italic';
+                maisEspecies.style.color = '#666';
+                maisEspecies.innerHTML = `+ ${populacao.length - 20} outras espécies (veja a tabela completa abaixo)`;
+                legenda.appendChild(maisEspecies);
+            }
+        }
+
+        function calcularShannon(populacao, totalIndividuos) {
+            const corpoTabela = document.getElementById('corpoTabela');
+            const passoAPasso = document.getElementById('passoAPasso');
+            corpoTabela.innerHTML = '';
+            passoAPasso.innerHTML = '';
+
+            let shannon = 0;
+            let passos = '<ol style="line-height: 2;">';
+
+            passos += `<li><strong>Total de indivíduos (N):</strong> ${totalIndividuos}</li>`;
+            passos += `<li><strong>Número de espécies (S):</strong> ${populacao.length}</li>`;
+            passos += '<li><strong>Calcular proporção (pᵢ) para cada espécie:</strong> pᵢ = nᵢ / N</li>';
+            passos += '<li><strong>Calcular ln(pᵢ) para cada espécie</strong></li>';
+            passos += '<li><strong>Calcular pᵢ × ln(pᵢ) para cada espécie</strong></li>';
+            passos += '<li><strong>Somar todos os valores e multiplicar por -1:</strong></li>';
+
+            // Ordenar por abundância (mais abundantes primeiro)
+            const populacaoOrdenada = [...populacao].sort((a, b) => b.individuos.length - a.individuos.length);
+
+            populacaoOrdenada.forEach(esp => {
+                const ni = esp.individuos.length;
+                const pi = ni / totalIndividuos;
+                const lnPi = Math.log(pi);
+                const piLnPi = pi * lnPi;
+                shannon -= piLnPi;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${esp.especie}</strong></td>
+                    <td>${ni}</td>
+                    <td>${pi.toFixed(4)}</td>
+                    <td>${lnPi.toFixed(4)}</td>
+                    <td>${piLnPi.toFixed(4)}</td>
+                `;
+                corpoTabela.appendChild(row);
+            });
+
+            const soma = -shannon;
+            passos += `<ul style="margin-left: 20px; margin-top: 10px;">`;
+            passos += `<li>Σ(pᵢ × ln(pᵢ)) = ${soma.toFixed(4)}</li>`;
+            passos += `<li><strong>H' = -Σ(pᵢ × ln(pᵢ)) = ${shannon.toFixed(4)}</strong></li>`;
+            passos += '</ul></ol>';
+
+            // Adicionar interpretação
+            let interpretacao = '';
+            if (shannon < 2.0) {
+                interpretacao = '📊 <strong>Baixa diversidade</strong> - Típico de floresta degradada ou monocultura';
+            } else if (shannon < 3.5) {
+                interpretacao = '📊 <strong>Diversidade média</strong> - Floresta em processo de regeneração';
+            } else if (shannon < 4.5) {
+                interpretacao = '📊 <strong>Alta diversidade</strong> - Típico de floresta tropical madura';
+            } else {
+                interpretacao = '📊 <strong>Diversidade muito alta</strong> - Floresta tropical primária bem preservada';
+            }
+
+            passos += `<div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 5px; border-left: 4px solid #4caf50;">${interpretacao}</div>`;
+
+            passoAPasso.innerHTML = passos;
+
+            document.getElementById('totalIndividuos').textContent = totalIndividuos;
+            document.getElementById('numEspeciesResult').textContent = populacao.length;
+            document.getElementById('shannon').textContent = shannon.toFixed(4);
+        }
+
+        window.onload = () => simular();
+    </script>
+</body>
+</html>

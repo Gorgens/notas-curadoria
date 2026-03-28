@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fisiologia Vegetal & Estresse — Material Didático</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --soil:   #8B6A3E;
+    --soil-lt:#C4A97D;
+    --plant:  #2D6A4F;
+    --plant-lt:#74C69D;
+    --atm:    #1B4F8A;
+    --atm-lt: #90C2F0;
+    --bio:    #7B2D8B;
+    --bio-lt: #C77DFF;
+    --stress: #C1440E;
+    --stress-lt:#F4845F;
+    --bg:     #F5F0E8;
+    --ink:    #1A1612;
+    --ink2:   #5A4F44;
+    --ink3:   #8C7D6E;
+    --rule:   rgba(26,22,18,0.12);
+    --card:   #FFFDF8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── TEXTURE OVERLAY ─────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.5;
+  }
+
+  /* ── NAV ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(245,240,232,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 0;
+  }
+
+  .nav-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; font-style: italic;
+    color: var(--ink); letter-spacing: 0.01em;
+    padding: 1rem 0;
+    flex: 1;
+  }
+
+  .nav-parts {
+    display: flex; gap: 0;
+  }
+
+  .nav-part {
+    padding: 1.1rem 1.2rem;
+    font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink3);
+    border: none; background: none; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    text-decoration: none;
+  }
+
+  .nav-part.active { color: var(--ink); border-bottom-color: var(--plant); }
+  .nav-part.disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+  .nav-part:not(.disabled):hover { color: var(--ink); }
+
+  /* ── HERO ────────────────────────────────────────── */
+  .hero {
+    position: relative; overflow: hidden;
+    padding: 5rem 2rem 4rem;
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    align-items: center;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--plant);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+
+  .hero-eyebrow::before {
+    content: ''; display: block;
+    width: 24px; height: 1.5px; background: var(--plant);
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15; font-weight: 700;
+    color: var(--ink); margin-bottom: 1.5rem;
+  }
+
+  .hero h1 em {
+    font-style: italic; color: var(--plant);
+  }
+
+  .hero-desc {
+    font-size: 0.97rem; line-height: 1.75;
+    color: var(--ink2); max-width: 46ch;
+  }
+
+  .hero-meta {
+    display: flex; gap: 2rem; margin-top: 2rem;
+  }
+
+  .hero-stat { }
+  .hero-stat-n {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.6rem; font-weight: 500; color: var(--plant);
+    line-height: 1;
+  }
+  .hero-stat-l {
+    font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink3);
+    margin-top: 0.25rem;
+  }
+
+  /* ── SPAC DIAGRAM (SVG) ──────────────────────────── */
+  .spac-visual {
+    position: relative;
+  }
+
+  .spac-svg-wrap {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+  }
+
+  /* ── SECTION WRAPPER ─────────────────────────────── */
+  .section {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  .section-header {
+    display: flex; align-items: baseline; gap: 1.2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem; color: var(--ink3);
+    letter-spacing: 0.04em;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 700; color: var(--ink);
+  }
+
+  /* ── COMPONENT CARDS GRID ────────────────────────── */
+  .components-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .comp-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .comp-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(0,0,0,0.09);
+  }
+
+  .comp-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    border-radius: 4px 0 0 4px;
+  }
+
+  .comp-card.soil::before  { background: var(--soil); }
+  .comp-card.plant::before { background: var(--plant); }
+  .comp-card.atm::before   { background: var(--atm); }
+  .comp-card.bio::before   { background: var(--bio); }
+
+  .comp-card-tag {
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .comp-card.soil  .comp-card-tag { background: rgba(139,106,62,0.1);  color: var(--soil); }
+  .comp-card.plant .comp-card-tag { background: rgba(45,106,79,0.1);   color: var(--plant); }
+  .comp-card.atm   .comp-card-tag { background: rgba(27,79,138,0.1);   color: var(--atm); }
+  .comp-card.bio   .comp-card-tag { background: rgba(123,45,139,0.1);  color: var(--bio); }
+
+  .comp-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--ink); margin-bottom: 0.6rem;
+  }
+
+  .comp-card p {
+    font-size: 0.88rem; line-height: 1.7; color: var(--ink2);
+  }
+
+  .comp-card-psi {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem; margin-top: 0.9rem;
+    color: var(--ink3);
+  }
+
+  .comp-card-psi strong {
+    font-weight: 500;
+  }
+
+  /* ── FLOW SECTION ────────────────────────────────── */
+  .flow-strip {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .flow-strip h4 {
+    font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--ink3);
+    margin-bottom: 1.2rem;
+  }
+
+  .flow-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .flow-node {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.86rem; font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .flow-node.soil  { background: rgba(139,106,62,0.12); color: var(--soil); border: 1px solid rgba(139,106,62,0.3); }
+  .flow-node.plant { background: rgba(45,106,79,0.12);  color: var(--plant);border: 1px solid rgba(45,106,79,0.3); }
+  .flow-node.atm   { background: rgba(27,79,138,0.12);  color: var(--atm);  border: 1px solid rgba(27,79,138,0.3); }
+  .flow-node.bio   { background: rgba(123,45,139,0.12); color: var(--bio);  border: 1px solid rgba(123,45,139,0.3); }
+  .flow-node.stress{ background: rgba(193,68,14,0.1);   color: var(--stress);border: 1px solid rgba(193,68,14,0.3); }
+
+  .flow-arrow {
+    font-size: 1.1rem; color: var(--ink3);
+  }
+
+  .flow-label {
+    font-size: 0.75rem; color: var(--ink3);
+    white-space: nowrap; font-style: italic;
+  }
+
+  /* ── STRESS ALERT BOX ────────────────────────────── */
+  .stress-box {
+    background: rgba(193,68,14,0.06);
+    border: 1px solid rgba(193,68,14,0.25);
+    border-radius: 14px;
+    padding: 1.5rem 1.8rem;
+    display: grid; grid-template-columns: auto 1fr; gap: 1.2rem;
+    align-items: start;
+  }
+
+  .stress-icon {
+    width: 40px; height: 40px;
+    background: rgba(193,68,14,0.12);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+
+  .stress-box h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; font-weight: 700;
+    color: var(--stress); margin-bottom: 0.5rem;
+  }
+
+  .stress-box p {
+    font-size: 0.88rem; line-height: 1.75; color: var(--ink2);
+  }
+
+  .stress-box code {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.83rem;
+    background: rgba(193,68,14,0.08);
+    padding: 0.1rem 0.4rem; border-radius: 4px;
+    color: var(--stress);
+  }
+
+  /* ── IAF SECTION ─────────────────────────────────── */
+  .iaf-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .iaf-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .iaf-phase {
+    font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--ink3); margin-bottom: 0.5rem;
+  }
+
+  .iaf-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.5rem; font-weight: 500;
+    color: var(--plant); margin-bottom: 0.25rem;
+  }
+
+  .iaf-label {
+    font-size: 0.75rem; color: var(--ink3); margin-bottom: 1rem;
+  }
+
+  .iaf-bar-wrap {
+    height: 8px; background: rgba(0,0,0,0.07);
+    border-radius: 4px; margin-bottom: 1rem; overflow: hidden;
+  }
+
+  .iaf-bar-e, .iaf-bar-t {
+    height: 100%; display: inline-block; border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .iaf-bar-e { background: var(--soil-lt); }
+  .iaf-bar-t { background: var(--plant); }
+
+  .iaf-legend {
+    display: flex; gap: 0.8rem; justify-content: center;
+    font-size: 0.75rem;
+  }
+
+  .iaf-legend span {
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  .iaf-desc { font-size: 0.82rem; line-height: 1.6; color: var(--ink2); margin-top: 0.75rem; }
+
+  /* ── EQUATION ────────────────────────────────────── */
+  .equation-box {
+    background: var(--ink);
+    color: #F5F0E8;
+    border-radius: 14px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .equation-box .eq-label {
+    font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: rgba(245,240,232,0.5);
+    margin-bottom: 1rem;
+  }
+
+  .equation-box .eq-main {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.15rem; font-weight: 500;
+    letter-spacing: 0.02em; margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .equation-box .eq-desc {
+    font-size: 0.83rem; line-height: 1.7;
+    color: rgba(245,240,232,0.65);
+  }
+
+  /* ── PARTS NAV PLACEHOLDER ───────────────────────── */
+  .parts-nav {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  .parts-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  }
+
+  .part-tile {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    cursor: default;
+  }
+
+  .part-tile.active {
+    border-color: var(--plant);
+    box-shadow: 0 0 0 1px var(--plant);
+  }
+
+  .part-tile.coming {
+    opacity: 0.5;
+  }
+
+  .part-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 2rem; font-weight: 500;
+    color: rgba(0,0,0,0.07); line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .part-tile.active .part-num { color: rgba(45,106,79,0.2); }
+
+  .part-tile h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem; font-weight: 700;
+    color: var(--ink); margin-bottom: 0.4rem;
+  }
+
+  .part-tile p {
+    font-size: 0.78rem; color: var(--ink3); line-height: 1.5;
+  }
+
+  .part-badge {
+    position: absolute; top: 1rem; right: 1rem;
+    font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 0.1em; padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .part-badge.done    { background: rgba(45,106,79,0.12); color: var(--plant); }
+  .part-badge.pending { background: rgba(0,0,0,0.06); color: var(--ink3); }
+
+  /* ── FOOTER ──────────────────────────────────────── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 2rem;
+    text-align: center;
+    font-size: 0.75rem; color: var(--ink3);
+    letter-spacing: 0.04em;
+  }
+
+  footer strong { color: var(--ink2); font-weight: 500; }
+
+  /* ── PARTE II: BALANÇO DE CARBONO ───────────────── */
+  .parte2-hero {
+    max-width: 1100px; margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+  }
+
+  /* interactive chart container */
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+  }
+
+  .chart-card canvas { display: block; width: 100% !important; }
+
+  /* cardinal temp cards */
+  .cardinal-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .cardinal-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 1.4rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+  }
+
+  .cardinal-card:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0,0,0,0.09); }
+
+  .cardinal-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .cardinal-card.tb1::after  { background: var(--atm); }
+  .cardinal-card.to::after   { background: var(--plant); }
+  .cardinal-card.tb2::after  { background: var(--stress); }
+
+  .cardinal-symbol {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.3rem; font-weight: 500;
+    margin-bottom: 0.3rem;
+  }
+
+  .cardinal-card.tb1 .cardinal-symbol { color: var(--atm); }
+  .cardinal-card.to  .cardinal-symbol { color: var(--plant); }
+  .cardinal-card.tb2 .cardinal-symbol { color: var(--stress); }
+
+  .cardinal-name {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink3); margin-bottom: 0.8rem;
+  }
+
+  .cardinal-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem; font-weight: 700; color: var(--ink); margin-bottom: 0.5rem;
+  }
+
+  .cardinal-card p { font-size: 0.82rem; line-height: 1.65; color: var(--ink2); }
+
+  /* curve legend strip */
+  .curve-legend {
+    display: flex; gap: 1.5rem; flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 10px; margin-bottom: 2rem;
+    align-items: center;
+  }
+
+  .curve-legend-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.83rem; color: var(--ink2);
+  }
+
+  .legend-line {
+    width: 28px; height: 3px; border-radius: 2px; flex-shrink: 0;
+  }
+
+  /* slider for interactive chart */
+  .chart-controls {
+    margin-top: 1rem;
+    display: flex; align-items: center; gap: 1rem;
+    font-size: 0.8rem; color: var(--ink3);
+  }
+
+  .chart-controls input[type=range] { flex: 1; }
+  .chart-controls .ctrl-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem; color: var(--plant);
+    min-width: 40px; text-align: right;
+  }
+
+  /* equation row for Fb, R, FL */
+  .eq-row {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .eq-mini {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 1.1rem 1.25rem;
+  }
+
+  .eq-mini-label {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink3); margin-bottom: 0.4rem;
+  }
+
+  .eq-mini-formula {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem; font-weight: 500;
+  }
+
+  .eq-mini-formula.fb { color: var(--atm); }
+  .eq-mini-formula.r  { color: var(--stress); }
+  .eq-mini-formula.fl { color: var(--plant); }
+
+  .eq-mini p { font-size: 0.8rem; color: var(--ink2); margin-top: 0.4rem; line-height: 1.55; }
+
+  /* ── PARTE III: EVAPOTRANSPIRAÇÃO ───────────────── */
+  .parte3-hero {
+    max-width: 1100px; margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+  }
+
+  .soil-states-grid {
+    display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .soil-state-card {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 14px; padding: 1.4rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .soil-state-card:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0,0,0,0.09); }
+  .soil-state-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 100%; height: 3px;
+  }
+  .soil-state-card.pmp::before  { background: var(--stress); }
+  .soil-state-card.cc::before   { background: var(--plant); }
+  .soil-state-card.sat::before  { background: var(--atm); }
+  .soil-state-card.crit::before { background: var(--bio); }
+
+  .soil-state-sym {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem; font-weight: 500; margin-bottom: 0.25rem;
+  }
+  .soil-state-card.pmp  .soil-state-sym { color: var(--stress); }
+  .soil-state-card.cc   .soil-state-sym { color: var(--plant); }
+  .soil-state-card.sat  .soil-state-sym { color: var(--atm); }
+  .soil-state-card.crit .soil-state-sym { color: var(--bio); }
+  .soil-state-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem; font-weight: 700; color: var(--ink); margin-bottom: 0.45rem;
+  }
+  .soil-state-card p { font-size: 0.82rem; line-height: 1.65; color: var(--ink2); }
+
+  .et-chart-wrap {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 16px; padding: 1.5rem;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+  }
+
+  .deficit-strip {
+    display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: start;
+    background: rgba(123,45,139,0.05); border: 1px solid rgba(123,45,139,0.2);
+    border-radius: 14px; padding: 1.4rem 1.6rem; margin-bottom: 1.2rem;
+  }
+  .deficit-strip-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(123,45,139,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .deficit-strip h4 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--bio); margin-bottom: 0.45rem; }
+  .deficit-strip p  { font-size: 0.86rem; line-height: 1.7; color: var(--ink2); }
+
+  .ze-strip {
+    background: rgba(139,106,62,0.08); border: 1px solid rgba(139,106,62,0.25);
+    border-radius: 14px; padding: 1.4rem 1.6rem;
+    display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: start;
+  }
+  .ze-strip-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(139,106,62,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .ze-strip h4 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--soil); margin-bottom: 0.4rem; }
+  .ze-strip p  { font-size: 0.86rem; line-height: 1.7; color: var(--ink2); }
+
+  /* ── PARTE IV: DINÂMICA NICTEMERAL ──────────────── */
+  .parte4-hero {
+    max-width: 1100px; margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    align-items: start;
+    border-top: 1px solid var(--rule);
+  }
+
+  .nictemeral-chart-wrap {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 16px; padding: 1.5rem;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+  }
+
+  .nictemeral-chart-wrap canvas { display: block; width: 100% !important; margin-bottom: 0.5rem; }
+
+  .phase-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .phase-card {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 14px; padding: 1.4rem;
+    position: relative; overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+  }
+  .phase-card:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(0,0,0,0.09); }
+  .phase-card::before {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+  }
+  .phase-card.dawn::before   { background: var(--atm); }
+  .phase-card.midday::before { background: var(--stress); }
+  .phase-card.night::before  { background: var(--plant); }
+
+  .phase-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .phase-card.dawn   .phase-time { color: var(--atm); }
+  .phase-card.midday .phase-time { color: var(--stress); }
+  .phase-card.night  .phase-time { color: var(--plant); }
+
+  .phase-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.95rem; font-weight: 700; color: var(--ink); margin-bottom: 0.45rem;
+  }
+  .phase-card p { font-size: 0.81rem; line-height: 1.65; color: var(--ink2); }
+
+  .lag-strip {
+    background: rgba(193,68,14,0.05); border: 1px solid rgba(193,68,14,0.2);
+    border-radius: 14px; padding: 1.4rem 1.6rem;
+    display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: start;
+    margin-bottom: 1.2rem;
+  }
+  .lag-strip-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(193,68,14,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .lag-strip h4 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--stress); margin-bottom: 0.45rem; }
+  .lag-strip p  { font-size: 0.86rem; line-height: 1.7; color: var(--ink2); }
+
+  .recovery-strip {
+    background: rgba(45,106,79,0.06); border: 1px solid rgba(45,106,79,0.2);
+    border-radius: 14px; padding: 1.4rem 1.6rem;
+    display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: start;
+  }
+  .recovery-strip-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(45,106,79,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .recovery-strip h4 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--plant); margin-bottom: 0.45rem; }
+  .recovery-strip p  { font-size: 0.86rem; line-height: 1.7; color: var(--ink2); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero, .comp-card, .flow-strip, .stress-box, .iaf-card, .part-tile {
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .comp-card:nth-child(1) { animation-delay: 0.05s; }
+  .comp-card:nth-child(2) { animation-delay: 0.10s; }
+  .comp-card:nth-child(3) { animation-delay: 0.15s; }
+  .comp-card:nth-child(4) { animation-delay: 0.20s; }
+
+  .iaf-card:nth-child(1) { animation-delay: 0.05s; }
+  .iaf-card:nth-child(2) { animation-delay: 0.10s; }
+  .iaf-card:nth-child(3) { animation-delay: 0.15s; }
+
+  /* ── RESPONSIVE ──────────────────────────────────── */
+  @media (max-width: 768px) {
+    .hero { grid-template-columns: 1fr; }
+    .components-grid { grid-template-columns: 1fr; }
+    .iaf-grid { grid-template-columns: 1fr; }
+    .parts-grid { grid-template-columns: repeat(2, 1fr); }
+    .nav-parts { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">Fisiologia de Plantas &amp; Estresse</span>
+  <div class="nav-parts">
+    <a class="nav-part active" href="#parte1">I. Continuum SPAC</a>
+    <a class="nav-part" href="#parte2">II. Balanço de Carbono</a>
+    <a class="nav-part" href="#parte3">III. Evapotranspiração</a>
+    <a class="nav-part" href="#parte4">IV. Dinâmica Nictemeral</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="parte1">
+  <div>
+    <p class="hero-eyebrow">Parte I</p>
+    <h1>O Sistema <em>Continuum</em><br>Solo-Planta-Atmosfera</h1>
+    <p class="hero-desc">
+      O fluxo ininterrupto de água no sistema SPAC é movido por um gradiente de potencial hídrico (Ψ) que vai do solo — reservatório de origem — até a atmosfera — o sumidouro final. A planta não é apenas um condutor passivo: seus fatores bióticos regulam, modulam e às vezes interrompem esse fluxo.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="hero-stat-n">4</div>
+        <div class="hero-stat-l">componentes</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">2</div>
+        <div class="hero-stat-l">vias de perda</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">∞</div>
+        <div class="hero-stat-l">tensões em jogo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPAC DIAGRAM SVG -->
+  <div class="spac-visual">
+    <div class="spac-svg-wrap">
+      <svg viewBox="0 0 320 420" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <defs>
+          <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <!-- Gradient bar: Ψ scale -->
+        <defs>
+          <linearGradient id="psi-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1B4F8A" stop-opacity="0.7"/>
+            <stop offset="100%" stop-color="#8B6A3E" stop-opacity="0.7"/>
+          </linearGradient>
+        </defs>
+        <rect x="8" y="28" width="6" height="340" rx="3" fill="url(#psi-grad)"/>
+        <text x="6" y="22" font-family="DM Mono, monospace" font-size="7" fill="#8C7D6E" text-anchor="middle">Ψ −</text>
+        <text x="6" y="380" font-family="DM Mono, monospace" font-size="7" fill="#8C7D6E" text-anchor="middle">Ψ +</text>
+
+        <!-- ATMOSFERA -->
+        <rect x="70" y="18" width="220" height="56" rx="10" fill="rgba(27,79,138,0.1)" stroke="#1B4F8A" stroke-width="1.2"/>
+        <text x="180" y="40" font-family="Playfair Display, serif" font-size="13" font-weight="700" fill="#1B4F8A" text-anchor="middle">Atmosfera (A)</text>
+        <text x="180" y="56" font-family="DM Sans, sans-serif" font-size="8.5" fill="#5A4F44" text-anchor="middle">Sumidouro final · Ψ muito negativo</text>
+        <text x="180" y="68" font-family="DM Mono, monospace" font-size="8" fill="#8C7D6E" text-anchor="middle">Ψatm ≈ −100 a −1000 MPa</text>
+
+        <!-- T arrow (Planta → Atm) -->
+        <line x1="175" y1="106" x2="175" y2="78" stroke="#1B4F8A" stroke-width="2" marker-end="url(#a)"/>
+        <rect x="182" y="85" width="55" height="14" rx="4" fill="rgba(27,79,138,0.07)"/>
+        <text x="209" y="95" font-family="DM Sans, sans-serif" font-size="8" fill="#1B4F8A" text-anchor="middle">T · transpiração</text>
+
+        <!-- E arrow (Solo → Atm, curved) -->
+        <path d="M 90 252 Q 42 150 88 80" stroke="#8B6A3E" stroke-width="1.6" fill="none" marker-end="url(#a)" stroke-dasharray="4 3"/>
+        <text x="38" y="178" font-family="DM Sans, sans-serif" font-size="8" fill="#8B6A3E" text-anchor="middle">E</text>
+        <text x="38" y="188" font-family="DM Sans, sans-serif" font-size="8" fill="#8B6A3E" text-anchor="middle">evap.</text>
+
+        <!-- PLANTA -->
+        <rect x="70" y="106" width="220" height="70" rx="10" fill="rgba(45,106,79,0.1)" stroke="#2D6A4F" stroke-width="1.2"/>
+        <text x="170" y="130" font-family="Playfair Display, serif" font-size="13" font-weight="700" fill="#2D6A4F" text-anchor="middle">Planta (P)</text>
+        <text x="170" y="146" font-family="DM Sans, sans-serif" font-size="8.5" fill="#5A4F44" text-anchor="middle">Condução via xilema · estômatos</text>
+        <text x="170" y="160" font-family="DM Mono, monospace" font-size="8" fill="#8C7D6E" text-anchor="middle">Ψfolha ≈ −0.5 a −3 MPa</text>
+        <text x="170" y="170" font-family="DM Sans, sans-serif" font-size="7" fill="#8C7D6E" text-anchor="middle">(sob estresse: −4 a −8 MPa)</text>
+
+        <!-- Bióticos circle -->
+        <circle cx="270" cy="180" r="36" fill="rgba(123,45,139,0.08)" stroke="#7B2D8B" stroke-width="1.2" stroke-dasharray="5 3"/>
+        <text x="270" y="176" font-family="Playfair Display, serif" font-size="10" font-weight="700" fill="#7B2D8B" text-anchor="middle">Fatores</text>
+        <text x="270" y="188" font-family="Playfair Display, serif" font-size="10" font-weight="700" fill="#7B2D8B" text-anchor="middle">Bióticos (B)</text>
+        <text x="270" y="200" font-family="DM Sans, sans-serif" font-size="7" fill="#8C7D6E" text-anchor="middle">controle</text>
+        <text x="270" y="209" font-family="DM Sans, sans-serif" font-size="7" fill="#8C7D6E" text-anchor="middle">estomático</text>
+
+        <!-- Flux arrow: Solo → Planta -->
+        <line x1="175" y1="252" x2="175" y2="178" stroke="#2D6A4F" stroke-width="1.8" marker-end="url(#a)"/>
+        <rect x="182" y="208" width="56" height="14" rx="4" fill="rgba(45,106,79,0.07)"/>
+        <text x="210" y="218" font-family="DM Sans, sans-serif" font-size="8" fill="#2D6A4F" text-anchor="middle">fluxo ascend.</text>
+
+        <!-- SOLO -->
+        <rect x="70" y="252" width="220" height="68" rx="10" fill="rgba(139,106,62,0.12)" stroke="#8B6A3E" stroke-width="1.2"/>
+        <text x="180" y="274" font-family="Playfair Display, serif" font-size="13" font-weight="700" fill="#8B6A3E" text-anchor="middle">Solo (S)</text>
+        <text x="180" y="290" font-family="DM Sans, sans-serif" font-size="8.5" fill="#5A4F44" text-anchor="middle">Reservatório de origem</text>
+        <text x="180" y="308" font-family="DM Mono, monospace" font-size="8" fill="#8C7D6E" text-anchor="middle">Ψsolo ≈ 0 a −1.5 MPa (disp.)</text>
+
+        <!-- Estresse warning -->
+        <rect x="70" y="342" width="220" height="42" rx="8" fill="rgba(193,68,14,0.08)" stroke="#C1440E" stroke-width="1" stroke-dasharray="4 2"/>
+        <text x="180" y="358" font-family="DM Sans, sans-serif" font-size="8.5" font-weight="500" fill="#C1440E" text-anchor="middle">⚠ Estresse: E + T &gt; capacidade de S</text>
+        <text x="180" y="372" font-family="DM Sans, sans-serif" font-size="8" fill="#5A4F44" text-anchor="middle">→ cavitação · embolia · murchamento</text>
+
+        <!-- Equilíbrio label bottom -->
+        <text x="180" y="400" font-family="DM Mono, monospace" font-size="7.5" fill="#8C7D6E" text-anchor="middle">gradiente de Ψ: S → P → A</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ PARTE 1 ═══ -->
+<div class="section">
+
+  <!-- HEADER -->
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <span class="section-title">Componentes do Sistema SPAC</span>
+  </div>
+
+  <!-- COMPONENT CARDS -->
+  <div class="components-grid">
+
+    <div class="comp-card soil">
+      <span class="comp-card-tag">S · Reservatório</span>
+      <h3>Solo</h3>
+      <p>Atua como o reservatório de origem do fluxo hídrico. Sua capacidade de campo e condutividade hidráulica determinam a taxa máxima com que a água pode ser fornecida às raízes. Em condições de déficit, o Ψ do solo cai rapidamente, aumentando a resistência ao fluxo.</p>
+      <div class="comp-card-psi">Ψ típico: <strong>0 a −1,5 MPa</strong> (disponível) · <strong>&lt; −1,5 MPa</strong> (estresse)</div>
+    </div>
+
+    <div class="comp-card plant">
+      <span class="comp-card-tag">P · Condutor regulado</span>
+      <h3>Planta</h3>
+      <p>Conduz a água via xilema sob tensão (fluxo passivo dirigido pelo gradiente de Ψ). Não é um tubo inerte: raízes absorvem ativamente, e os estômatos regulam a saída de vapor. É a interface que diferencia o SPAC de um sistema físico simples.</p>
+      <div class="comp-card-psi">Ψ foliar típico: <strong>−0,5 a −3 MPa</strong> · em estresse: <strong>−4 a −8 MPa</strong></div>
+    </div>
+
+    <div class="comp-card atm">
+      <span class="comp-card-tag">A · Sumidouro</span>
+      <h3>Atmosfera</h3>
+      <p>É o sumidouro final com potencial hídrico extremamente negativo. O déficit de pressão de vapor (DPV) é o principal motor da transpiração: quanto maior o DPV, maior a "sucção" atmosférica sobre os estômatos abertos.</p>
+      <div class="comp-card-psi">Ψ típico: <strong>−100 a −1.000 MPa</strong> · DPV controla a demanda</div>
+    </div>
+
+    <div class="comp-card bio">
+      <span class="comp-card-tag">B · Regulação fisiológica</span>
+      <h3>Fatores Bióticos</h3>
+      <p>O que diferencia uma planta viva de um tubo: controle estomático (abertura/fechamento por células-guarda), arquitetura radicular, ajuste osmótico e sinalização por ABA. São esses mecanismos que permitem à planta sobreviver sob estresse hídrico intermitente.</p>
+      <div class="comp-card-psi">Resposta ao estresse: <strong>fechamento estomático</strong> · <strong>acúmulo de ABA</strong></div>
+    </div>
+
+  </div>
+
+  <!-- FLOW DIAGRAM TEXT -->
+  <div class="flow-strip">
+    <h4>Gradiente de potencial hídrico e vias de perda</h4>
+    <div class="flow-row">
+      <span class="flow-node soil">Solo (S)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-label">absorção radicular</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node plant">Planta (P)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-label">transpiração T</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node atm">Atmosfera (A)</span>
+    </div>
+    <div class="flow-row" style="margin-top:0.9rem">
+      <span class="flow-node soil">Solo (S)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-label">evaporação física E (direta)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node atm">Atmosfera (A)</span>
+    </div>
+    <div class="flow-row" style="margin-top:0.9rem">
+      <span class="flow-node bio">Bióticos (B)</span>
+      <span class="flow-arrow">⇄</span>
+      <span class="flow-label">modulam</span>
+      <span class="flow-arrow">⇄</span>
+      <span class="flow-node plant">Planta (P)</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-label">reduz T sob estresse</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node stress">ruptura do continuum</span>
+    </div>
+  </div>
+
+  <!-- STRESS BOX -->
+  <div class="stress-box">
+    <div class="stress-icon">⚠</div>
+    <div>
+      <h4>Ruptura do continuum sob estresse</h4>
+      <p>
+        Quando a demanda evaporativa supera a oferta hídrica do solo — isto é, quando
+        <code>E + T &gt; capacidade de suprimento de S</code> — a coluna d'água no xilema entra em
+        tensão excessiva e pode sofrer <strong>cavitação</strong> (formação de bolhas de ar) e <strong>embolia</strong>,
+        interrompendo o fluxo contínuo e levando ao murchamento permanente. A sobrevivência depende
+        da capacidade biótica de equilibrar perda hídrica e integridade hidráulica.
+      </p>
+    </div>
+  </div>
+
+  <!-- spacer -->
+  <div style="height:2.5rem"></div>
+
+  <!-- IAF SECTION HEADER -->
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <span class="section-title">IAF e a Partição E/T em Florestas de Eucalipto</span>
+  </div>
+
+  <!-- EQUATION -->
+  <div class="equation-box">
+    <div class="eq-label">Lei de Beer-Lambert aplicada ao dossel</div>
+    <div class="eq-main">R<sub style="font-size:0.75em">solo</sub> = R₀ · e<sup style="font-size:0.75em">−k · IAF</sup></div>
+    <div class="eq-desc">
+      R<sub>solo</sub> = radiação transmitida ao solo &nbsp;·&nbsp; R₀ = radiação incidente acima do dossel &nbsp;·&nbsp;
+      k = coeficiente de extinção (~0,4–0,6 para eucalipto) &nbsp;·&nbsp; IAF = índice de área foliar.
+      À medida que o IAF cresce, a radiação que chega ao solo cai exponencialmente — e com ela, a evaporação física (E).
+    </div>
+  </div>
+
+  <!-- IAF PHASES -->
+  <div class="iaf-grid">
+
+    <div class="iaf-card">
+      <div class="iaf-phase">Fase juvenil</div>
+      <div class="iaf-val">IAF &lt; 1,5</div>
+      <div class="iaf-label">Dossel aberto</div>
+      <div style="margin-bottom:0.4rem">
+        <div style="font-size:0.72rem;color:var(--ink3);margin-bottom:0.2rem;display:flex;justify-content:space-between">
+          <span>E (evaporação solo)</span><span style="font-family:'DM Mono',monospace">40–60%</span>
+        </div>
+        <div class="iaf-bar-wrap" style="background:rgba(0,0,0,0.06)">
+          <div class="iaf-bar-e" style="width:50%"></div>
+          <div class="iaf-bar-t" style="width:50%;display:inline-block"></div>
+        </div>
+      </div>
+      <div class="iaf-legend">
+        <span><span class="dot" style="background:var(--soil-lt)"></span> E</span>
+        <span><span class="dot" style="background:var(--plant)"></span> T</span>
+      </div>
+      <p class="iaf-desc">Solo exposto recebe radiação intensa. E representa até 60% da ET. Alta competição entre solo e planta pelo uso da água.</p>
+    </div>
+
+    <div class="iaf-card">
+      <div class="iaf-phase">Fechamento de dossel</div>
+      <div class="iaf-val">IAF 1,5–3</div>
+      <div class="iaf-label">Interceptação crescente</div>
+      <div style="margin-bottom:0.4rem">
+        <div style="font-size:0.72rem;color:var(--ink3);margin-bottom:0.2rem;display:flex;justify-content:space-between">
+          <span>E (evaporação solo)</span><span style="font-family:'DM Mono',monospace">20–30%</span>
+        </div>
+        <div class="iaf-bar-wrap" style="background:rgba(0,0,0,0.06)">
+          <div class="iaf-bar-e" style="width:25%"></div>
+          <div class="iaf-bar-t" style="width:75%;display:inline-block"></div>
+        </div>
+      </div>
+      <div class="iaf-legend">
+        <span><span class="dot" style="background:var(--soil-lt)"></span> E</span>
+        <span><span class="dot" style="background:var(--plant)"></span> T</span>
+      </div>
+      <p class="iaf-desc">T passa a dominar. WUE (eficiência do uso da água) aumenta. A água vai cada vez mais para a produção de biomassa.</p>
+    </div>
+
+    <div class="iaf-card">
+      <div class="iaf-phase">Dossel fechado</div>
+      <div class="iaf-val">IAF &gt; 3</div>
+      <div class="iaf-label">Interceptação plena</div>
+      <div style="margin-bottom:0.4rem">
+        <div style="font-size:0.72rem;color:var(--ink3);margin-bottom:0.2rem;display:flex;justify-content:space-between">
+          <span>E (evaporação solo)</span><span style="font-family:'DM Mono',monospace">&lt; 15%</span>
+        </div>
+        <div class="iaf-bar-wrap" style="background:rgba(0,0,0,0.06)">
+          <div class="iaf-bar-e" style="width:12%"></div>
+          <div class="iaf-bar-t" style="width:88%;display:inline-block"></div>
+        </div>
+      </div>
+      <div class="iaf-legend">
+        <span><span class="dot" style="background:var(--soil-lt)"></span> E</span>
+        <span><span class="dot" style="background:var(--plant)"></span> T</span>
+      </div>
+      <p class="iaf-desc">E colapsa (&lt;15%). DPV e comportamento estomático do eucalipto (isohydric moderado) passam a controlar T. IAF cessa de ser limitante.</p>
+    </div>
+
+  </div>
+
+  <!-- stress note -->
+  <div class="stress-box">
+    <div class="stress-icon">🌱</div>
+    <div>
+      <h4>Implicação para modelos de crescimento (ex.: 3-PG)</h4>
+      <p>
+        Plantios <strong>jovens</strong> de eucalipto sob déficit hídrico são especialmente vulneráveis: o IAF ainda não suprime E,
+        e a T compete com a evaporação do solo aberto. O modelo 3-PG usa o IAF para calcular a fração de radiação interceptada
+        (fIPAR) e, portanto, a produção potencial de biomassa. Compreender a partição E/T em função do IAF é essencial para
+        calibrar o balanço hídrico e estimar produtividade real em plantações com restrição de água.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /section -->
+
+<!-- ════════════════════════════════ PARTE II ══════ -->
+<div id="parte2">
+
+<!-- HERO PARTE II -->
+<div class="parte2-hero">
+  <div>
+    <p class="hero-eyebrow" style="color:var(--atm)">Parte II</p>
+    <h1 style="font-size:clamp(1.8rem,3.5vw,2.6rem)">Temperatura e o<br><em style="color:var(--plant)">Balanço de Carbono</em></h1>
+    <p class="hero-desc">
+      A temperatura governa simultaneamente a fotossíntese e a respiração — mas com respostas diferentes. Enquanto a Fotossíntese Bruta (F<sub>b</sub>) satura em determinado ponto, a Respiração (R) cresce de forma exponencial. O saldo — Fotossíntese Líquida (F<sub>L</sub>) — define se a planta acumula ou consome reservas de carbono.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--atm)">F<sub style="font-size:0.6em">b</sub></div>
+        <div class="hero-stat-l">fotossíntese bruta</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--stress)">R</div>
+        <div class="hero-stat-l">respiração</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--plant)">F<sub style="font-size:0.6em">L</sub></div>
+        <div class="hero-stat-l">fotossíntese líquida</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE CHART -->
+  <div>
+    <div class="chart-card">
+      <canvas id="carbonChart" height="260"></canvas>
+      <div class="chart-controls">
+        <span>Temperatura de referência T<sub>o</sub></span>
+        <input type="range" id="toSlider" min="18" max="35" value="27" step="1">
+        <span class="ctrl-val" id="toVal">27 °C</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION CONTENT -->
+<div class="section" style="padding-top:0">
+
+  <!-- curve legend -->
+  <div class="curve-legend">
+    <div class="curve-legend-item">
+      <div class="legend-line" style="background:var(--atm)"></div>
+      Fotossíntese Bruta (F<sub>b</sub>) — fixação total de CO₂
+    </div>
+    <div class="curve-legend-item">
+      <div class="legend-line" style="background:var(--stress)"></div>
+      Respiração (R) — crescimento exponencial com T
+    </div>
+    <div class="curve-legend-item">
+      <div class="legend-line" style="background:var(--plant);height:3px;border-radius:2px"></div>
+      Fotossíntese Líquida (F<sub>L</sub> = F<sub>b</sub> − R) — acúmulo efetivo de biomassa
+    </div>
+  </div>
+
+  <!-- equations row -->
+  <div class="eq-row">
+    <div class="eq-mini">
+      <div class="eq-mini-label">Fotossíntese Bruta</div>
+      <div class="eq-mini-formula fb">F<sub>b</sub>(T)</div>
+      <p>Fixação total de CO₂ pelos cloroplastos. Aumenta com T até saturar por inativação enzimática (Rubisco). Unidade: kg[CO₂]/(ha·h).</p>
+    </div>
+    <div class="eq-mini">
+      <div class="eq-mini-label">Respiração</div>
+      <div class="eq-mini-formula r">R(T) = R₀ · Q<sub>10</sub><sup>(T/10)</sup></div>
+      <p>Metabolismo celular de manutenção e crescimento. Obedece à regra Q₁₀ — dobra a cada ~10 °C de aumento. Cresce sem limite de saturação.</p>
+    </div>
+    <div class="eq-mini">
+      <div class="eq-mini-label">Fotossíntese Líquida</div>
+      <div class="eq-mini-formula fl">F<sub>L</sub> = F<sub>b</sub> − R</div>
+      <p>Saldo efetivo de carbono disponível para crescimento. Positivo entre T<sub>b1</sub> e T<sub>b2</sub>; negativo fora dessa faixa.</p>
+    </div>
+  </div>
+
+  <!-- section header: temperaturas cardinais -->
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <span class="section-title">Temperaturas Cardinais</span>
+  </div>
+
+  <div class="cardinal-grid">
+
+    <div class="cardinal-card tb1">
+      <div class="cardinal-name">Temperatura base inferior</div>
+      <div class="cardinal-symbol">T<sub>b1</sub></div>
+      <h4>Início do acúmulo</h4>
+      <p>Ponto onde a fotossíntese começa a superar a respiração. Abaixo de T<sub>b1</sub>, F<sub>L</sub> &lt; 0 — a planta consome mais carbono do que fixa. Marca o limiar mínimo para crescimento líquido.</p>
+    </div>
+
+    <div class="cardinal-card to">
+      <div class="cardinal-name">Temperatura ótima</div>
+      <div class="cardinal-symbol">T<sub>o</sub></div>
+      <h4>Máxima eficiência</h4>
+      <p>Ápice da curva de F<sub>L</sub>, onde a distância vertical entre F<sub>b</sub> e R é máxima. Nessa temperatura a eficiência metabólica é ideal e a planta apresenta sua maior taxa de crescimento.</p>
+    </div>
+
+    <div class="cardinal-card tb2">
+      <div class="cardinal-name">Temperatura base superior</div>
+      <div class="cardinal-symbol">T<sub>b2</sub></div>
+      <h4>Limite crítico</h4>
+      <p>Ponto onde R = F<sub>b</sub>: saldo de carbono zera. Acima de T<sub>b2</sub>, a planta consome reservas mais rápido do que produz — risco de inanição de carbono e morte por estresse térmico.</p>
+    </div>
+
+  </div>
+
+  <!-- stress box -->
+  <div class="stress-box">
+    <div class="stress-icon">🌡</div>
+    <div>
+      <h4>Estresse térmico como ruptura do balanço de carbono</h4>
+      <p>
+        Assim como o estresse hídrico rompe o continuum SPAC, o estresse térmico rompe o equilíbrio metabólico.
+        Quando <code>T &gt; T<sub>b2</sub></code>, a respiração supera a fotossíntese e o saldo de carbono torna-se negativo.
+        Em episódios prolongados, a planta esgota reservas de amido e açúcares solúveis, comprometendo também o
+        potencial de recuperação hídrica — os dois estresses se retroalimentam. Em florestas de eucalipto, eventos
+        de onda de calor (T &gt; 38–42 °C) podem cruzar T<sub>b2</sub> durante horas consecutivas, acelerando a senescência foliar.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /section parte2 -->
+</div><!-- /parte2 -->
+
+
+<!-- ════════════════════════════════ PARTE III ═════ -->
+<div id="parte3">
+
+<!-- HERO PARTE III -->
+<div class="parte3-hero">
+  <div>
+    <p class="hero-eyebrow" style="color:var(--soil)">Parte III</p>
+    <h1 style="font-size:clamp(1.8rem,3.5vw,2.6rem)">Água no Solo e a<br><em style="color:var(--plant)">Evapotranspiração Real</em></h1>
+    <p class="hero-desc">
+      A planta não transpira sempre na taxa máxima. À medida que a umidade do solo diminui,
+      ela fecha progressivamente os estômatos — até o ponto onde não consegue mais extrair
+      água. O gráfico ET<sub>a</sub> vs θ traduz essa dinâmica em termos de manejo hídrico e estresse.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--atm)">ET<sub style="font-size:0.6em">c</sub></div>
+        <div class="hero-stat-l">demanda potencial</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--stress)">ET<sub style="font-size:0.6em">a</sub></div>
+        <div class="hero-stat-l">evapotransp. real</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--bio)">DEF</div>
+        <div class="hero-stat-l">déficit hídrico</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ET INTERACTIVE CHART -->
+  <div class="et-chart-wrap">
+    <canvas id="etChart" height="260"></canvas>
+    <div class="chart-controls">
+      <span>Ponto crítico θ<sub>c</sub></span>
+      <input type="range" id="critSlider" min="30" max="60" value="45" step="1">
+      <span class="ctrl-val" id="critVal">45%</span>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION CONTENT -->
+<div class="section" style="padding-top:0">
+
+  <!-- legend strip -->
+  <div class="curve-legend">
+    <div class="curve-legend-item">
+      <div class="legend-line" style="background:var(--atm)"></div>
+      ET<sub>c</sub> — evapotranspiração potencial (demanda máxima da cultura)
+    </div>
+    <div class="curve-legend-item">
+      <div class="legend-line" style="background:var(--stress)"></div>
+      ET<sub>a</sub> — evapotranspiração real (o que a planta de fato transpira)
+    </div>
+    <div class="curve-legend-item">
+      <div class="legend-line" style="background:var(--bio); border-top: 2px dashed var(--bio); height:0"></div>
+      DEF = ET<sub>c</sub> − ET<sub>a</sub> (déficit hídrico acumulado)
+    </div>
+  </div>
+
+  <!-- section header: estados de umidade -->
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <span class="section-title">Estados de Umidade do Solo (θ)</span>
+  </div>
+
+  <div class="soil-states-grid">
+
+    <div class="soil-state-card pmp">
+      <div class="soil-state-sym">θ<sub>PMP</sub></div>
+      <h4>Ponto de Murcha Permanente</h4>
+      <p>Limite inferior de água disponível. A planta não consegue mais extrair água contra a força de retenção do solo (Ψ ≈ −1,5 MPa). ET<sub>a</sub> cai a zero e a murcha torna-se irreversível.</p>
+    </div>
+
+    <div class="soil-state-card crit">
+      <div class="soil-state-sym">θ<sub>c</sub></div>
+      <h4>Umidade Crítica</h4>
+      <p>Ponto onde a planta começa a fechar os estômatos para se proteger da dessecação. Abaixo de θ<sub>c</sub>, ET<sub>a</sub> &lt; ET<sub>c</sub> e o déficit hídrico (DEF) passa a se acumular.</p>
+    </div>
+
+    <div class="soil-state-card cc">
+      <div class="soil-state-sym">θ<sub>CC</sub></div>
+      <h4>Capacidade de Campo</h4>
+      <p>Quantidade máxima de água retida pelo solo contra a gravidade após chuva ou irrigação (Ψ ≈ −0,03 MPa). Entre θ<sub>CC</sub> e θ<sub>c</sub> a planta transpira livremente: ET<sub>a</sub> = ET<sub>c</sub>.</p>
+    </div>
+
+    <div class="soil-state-card sat">
+      <div class="soil-state-sym">θ<sub>S</sub></div>
+      <h4>Saturação</h4>
+      <p>Todos os poros preenchidos com água. Embora haja excesso de água, a falta de oxigênio (anoxia) nas raízes prejudica a absorção e a fisiologia — zona B do gráfico.</p>
+    </div>
+
+  </div>
+
+  <!-- deficit strip -->
+  <div class="deficit-strip">
+    <div class="deficit-strip-icon">📉</div>
+    <div>
+      <h4>Déficit Hídrico (DEF) — a área sombreada entre ET<sub>c</sub> e ET<sub>a</sub></h4>
+      <p>
+        O DEF acumulado representa o estresse integrado sofrido pela planta ao longo do tempo.
+        É calculado como <code>DEF = Σ (ET<sub>c</sub> − ET<sub>a</sub>)</code> nos intervalos em que a umidade do solo
+        está abaixo de θ<sub>c</sub>. Em modelos de crescimento (como o 3-PG), o DEF é usado para calcular o
+        fator de modificação do crescimento por água (f<sub>θ</sub>), reduzindo a produção potencial de biomassa
+        proporcionalmente ao déficit acumulado. Em plantações de eucalipto, DEFs prolongados durante os meses
+        de inverno seco são o principal fator limitante da produtividade em regiões com déficit hídrico estacional.
+      </p>
+    </div>
+  </div>
+
+  <!-- Ze strip -->
+  <div class="ze-strip">
+    <div class="ze-strip-icon">🌱</div>
+    <div>
+      <h4>Z<sub>e</sub> — Profundidade efetiva do sistema radicular</h4>
+      <p>
+        Delimita o volume de solo de onde a planta efetivamente extrai água. Em eucaliptos, Z<sub>e</sub> pode
+        variar de &lt;0,5 m em solos compactados ou rasos até &gt;3 m em Latossolos profundos com boa drenagem.
+        Um maior Z<sub>e</sub> amplia o reservatório disponível — deslocando o momento em que θ cai abaixo de
+        θ<sub>c</sub> e, portanto, reduzindo a frequência e intensidade dos episódios de DEF.
+        Práticas como subsolagem, adubação profunda e seleção de clones com raízes pivotantes agressivas
+        visam justamente maximizar Z<sub>e</sub> para aumentar a resiliência ao estresse hídrico.
+      </p>
+    </div>
+  </div>
+
+  <!-- zona B anoxia -->
+  <div class="stress-box" style="margin-top:1rem">
+    <div class="stress-icon">💧</div>
+    <div>
+      <h4>Zona B — Excesso de água e anoxia radicular</h4>
+      <p>
+        Quando θ &gt; θ<sub>CC</sub> (saturação), o excesso de água expulsa o ar dos poros do solo. As raízes, sem
+        oxigênio para respiração aeróbica, perdem capacidade de absorção ativa — paradoxalmente, a planta pode
+        murchar mesmo com solo encharcado. Esse efeito é especialmente crítico em plantações em solos de baixa
+        condutividade hidráulica saturada, onde períodos chuvosos prolongados geram estresse por anoxia que
+        compromete o crescimento tanto quanto a seca.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /section parte3 -->
+</div><!-- /parte3 -->
+
+<!-- ════════════════════════════════ PARTE IV ══════ -->
+<div id="parte4">
+
+<div class="parte4-hero">
+  <div>
+    <p class="hero-eyebrow" style="color:var(--bio)">Parte IV</p>
+    <h1 style="font-size:clamp(1.8rem,3.5vw,2.6rem)">Dinâmica <em style="color:var(--stress)">Nictemeral</em><br>das Relações Hídricas</h1>
+    <p class="hero-desc">
+      Ao longo de 24 horas, a planta enfrenta ciclos extremos de demanda evaporativa. O potencial
+      hídrico foliar mergulha ao meio-dia muito abaixo do potencial do solo — gerando um lag de
+      absorção, perda de turgor temporária e, à noite, a recuperação que viabiliza o crescimento
+      celular real.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--plant)">Ψ<sub style="font-size:0.6em">s</sub></div>
+        <div class="hero-stat-l">potencial do solo</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--stress)">Ψ<sub style="font-size:0.6em">f</sub></div>
+        <div class="hero-stat-l">potencial foliar</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n" style="color:var(--bio)">Ψ<sub style="font-size:0.6em">a</sub></div>
+        <div class="hero-stat-l">potencial atm.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nictemeral-chart-wrap">
+    <canvas id="nicTurChart" height="130"></canvas>
+    <canvas id="nicPsiChart" height="200"></canvas>
+    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:0.8rem;font-size:0.75rem;color:var(--ink3)">
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="display:inline-block;width:20px;height:2.5px;background:var(--stress)"></span>Temperatura (T)</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="display:inline-block;width:20px;height:2.5px;background:var(--atm)"></span>Umidade Rel. (UR)</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="display:inline-block;width:20px;height:2.5px;background:#2D6A4F"></span>Ψ<sub>s</sub> solo</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="display:inline-block;width:20px;height:2.5px;background:var(--stress)"></span>Ψ<sub>f</sub> foliar</span>
+      <span style="display:flex;align-items:center;gap:0.4rem"><span style="display:inline-block;width:20px;height:2.5px;background:var(--bio)"></span>Ψ<sub>a</sub> atmosfera</span>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <span class="section-title">As Três Fases do Ciclo Diário</span>
+  </div>
+
+  <div class="phase-grid">
+    <div class="phase-card dawn">
+      <div class="phase-time">Amanhecer · 04h–08h</div>
+      <h4>Equilíbrio noturno</h4>
+      <p>Com T baixa e UR alta, Ψ<sub>a</sub> é menos negativo. A transpiração cessa. Raízes continuam absorvendo e reidratando tecidos. Ψ<sub>f</sub> ≈ Ψ<sub>s</sub>: planta em equilíbrio com o solo. Turgor restaurado — crescimento celular máximo ocorre neste período.</p>
+    </div>
+    <div class="phase-card midday">
+      <div class="phase-time">Meio-dia · 10h–14h</div>
+      <h4>Crise hídrica</h4>
+      <p>T no pico, UR no mínimo: DPV extremo. Ψ<sub>a</sub> despenca para centenas de atm negativas. A demanda transpiracional supera a absorção radicular — lag. Ψ<sub>f</sub> cai abaixo de Ψ<sub>s</sub>. Área hachurada = turgor perdido. Estômatos fecham para limitar perdas.</p>
+    </div>
+    <div class="phase-card night">
+      <div class="phase-time">Tarde/noite · 17h–04h</div>
+      <h4>Recuperação de turgor</h4>
+      <p>Com declínio de T e aumento de UR, Ψ<sub>a</sub> sobe. Transpiração cai. A absorção radicular "alcança" a demanda: Ψ<sub>f</sub> sobe de volta a Ψ<sub>s</sub>. A velocidade desta recuperação define se a planta entra no dia seguinte com reservas hídricas plenas.</p>
+    </div>
+  </div>
+
+  <div class="equation-box" style="margin-bottom:2rem">
+    <div class="eq-label">Potenciais hídricos de referência no sistema</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:0.5rem">
+      <div>
+        <div class="eq-main" style="font-size:0.95rem">Ψ<sub style="font-size:0.7em">s</sub> = −⅓ atm</div>
+        <div class="eq-desc">Solo na Capacidade de Campo. Água facilmente disponível. Ponto de partida ideal no amanhecer.</div>
+      </div>
+      <div>
+        <div class="eq-main" style="font-size:0.95rem">Ψ<sub style="font-size:0.7em">f</sub> = −15 atm</div>
+        <div class="eq-desc">Ponto de Murcha Permanente. Limite crítico — maioria das plantas não extrai água abaixo desse valor.</div>
+      </div>
+      <div>
+        <div class="eq-main" style="font-size:0.95rem">Ψ<sub style="font-size:0.7em">a</sub> = f(T, UR)</div>
+        <div class="eq-desc">Ao meio-dia com UR=40% e T=35°C pode atingir −800 a −1000 atm — a força motora do sistema SPAC.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lag-strip">
+    <div class="lag-strip-icon">⏱</div>
+    <div>
+      <h4>Defasagem de absorção (lag) — a área hachurada do gráfico</h4>
+      <p>
+        O lag ocorre porque a condutividade hidráulica do sistema solo-raiz é fisicamente limitada. Mesmo com
+        Ψ<sub>s</sub> confortável (−⅓ atm), a velocidade máxima de absorção radicular não acompanha a demanda
+        transpiracional do meio-dia. Nesse intervalo, a planta drena suas próprias reservas celulares (apoplasto,
+        vacúolos), causando queda de turgor — o murchamento temporário. Em eucaliptos sob déficit moderado,
+        esse lag pode durar 3 a 6 horas. Se a recuperação noturna for incompleta (solo seco, noite quente),
+        o estresse se acumula dia após dia, abrindo caminho para cavitação no xilema.
+      </p>
+    </div>
+  </div>
+
+  <div class="recovery-strip">
+    <div class="recovery-strip-icon">🌙</div>
+    <div>
+      <h4>Recuperação noturna — janela crítica para o crescimento</h4>
+      <p>
+        A expansão celular e o crescimento vegetativo real requerem turgor positivo (pressão acima de ~2–4 bar).
+        Esse estado só é atingido quando Ψ<sub>f</sub> se reaproxima de Ψ<sub>s</sub>, exclusivamente durante as
+        horas de baixa demanda atmosférica. Florestas em regiões com noites quentes e secas têm janelas de
+        recuperação encurtadas, crescimento diário reduzido e maior vulnerabilidade ao estresse cumulativo.
+        Estratégias de irrigação noturna visam garantir que Ψ<sub>s</sub> esteja alto justamente nesse período.
+      </p>
+    </div>
+  </div>
+
+</div><!-- /section parte4 -->
+</div><!-- /parte4 -->
+
+<!-- ── ROADMAP DAS PARTES ───────────────────────────── -->
+<div class="parts-nav">
+  <div class="section-header">
+    <span class="section-num">00</span>
+    <span class="section-title">Estrutura do Material</span>
+  </div>
+
+  <div class="parts-grid">
+
+    <div class="part-tile active">
+      <span class="part-badge done">✓ Concluída</span>
+      <div class="part-num">01</div>
+      <h4>Continuum SPAC</h4>
+      <p>Gradiente de Ψ, componentes S·P·A·B, vias E e T, ruptura por estresse e papel do IAF.</p>
+    </div>
+
+    <div class="part-tile active">
+      <span class="part-badge done">✓ Concluída</span>
+      <div class="part-num">02</div>
+      <h4>Balanço de Carbono</h4>
+      <p>F<sub>b</sub>, R, F<sub>L</sub> e temperaturas cardinais T<sub>b1</sub>, T<sub>o</sub>, T<sub>b2</sub>.</p>
+    </div>
+
+    <div class="part-tile active">
+      <span class="part-badge done">✓ Concluída</span>
+      <div class="part-num">03</div>
+      <h4>Evapotranspiração</h4>
+      <p>ET<sub>c</sub>, ET<sub>a</sub>, estados de θ, déficit hídrico, Z<sub>e</sub> e zona de anoxia.</p>
+    </div>
+
+    <div class="part-tile active">
+      <span class="part-badge done">✓ Concluída</span>
+      <div class="part-num">04</div>
+      <h4>Dinâmica Nictemeral</h4>
+      <p>Ciclo diário de Ψ, lag de absorção, recuperação de turgor e crescimento noturno.</p>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  Material didático · <strong>Fisiologia de Plantas &amp; Estresse</strong> · Versão 2.0 — Material Completo
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<script>
+(function() {
+  const C = {
+    fb:  '#1B4F8A',
+    r:   '#C1440E',
+    fl:  '#2D6A4F',
+    grid:'rgba(26,22,18,0.07)',
+    txt: '#8C7D6E',
+  };
+
+  function buildData(To) {
+    const temps = [];
+    const fb = [], r = [], fl = [];
+    const Tb1 = To - 17, Tb2 = To + 13;
+    for (let t = 0; t <= 50; t += 0.5) {
+      temps.push(t);
+      // Fb: bell-shaped with peak at To, tapering asymmetrically
+      const fbv = Math.max(0, 12 * Math.exp(-0.5 * Math.pow((t - To) / 9, 2)));
+      // R: exponential (Q10~2)
+      const rv  = 0.28 * Math.pow(2, t / 10);
+      const flv = fbv - rv;
+      fb.push(+fbv.toFixed(3));
+      r.push(+rv.toFixed(3));
+      fl.push(+flv.toFixed(3));
+    }
+    return { temps, fb, r, fl, Tb1, To, Tb2 };
+  }
+
+  function makeAnnotations(d) {
+    return {
+      tb1line: { type:'line', xMin: d.Tb1, xMax: d.Tb1, borderColor: C.fb, borderWidth: 1.2, borderDash:[4,3],
+        label:{ content:'Tb₁', display:true, position:'start', font:{size:11, family:"'DM Mono', monospace"}, color: C.fb, backgroundColor:'transparent', yAdjust:-4 }},
+      toline:  { type:'line', xMin: d.To,  xMax: d.To,  borderColor: C.fl, borderWidth: 1.5, borderDash:[4,3],
+        label:{ content:'To', display:true, position:'start', font:{size:11, family:"'DM Mono', monospace"}, color: C.fl, backgroundColor:'transparent', yAdjust:-4 }},
+      tb2line: { type:'line', xMin: d.Tb2, xMax: d.Tb2, borderColor: C.r,  borderWidth: 1.2, borderDash:[4,3],
+        label:{ content:'Tb₂', display:true, position:'start', font:{size:11, family:"'DM Mono', monospace"}, color: C.r, backgroundColor:'transparent', yAdjust:-4 }},
+    };
+  }
+
+  const canvas = document.getElementById('carbonChart');
+  const d0 = buildData(27);
+
+  const chart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: d0.temps,
+      datasets: [
+        { label:'Fotossíntese Bruta (Fb)', data: d0.fb, borderColor: C.fb, borderWidth: 2.2, pointRadius:0, tension:0.4, fill:false },
+        { label:'Respiração (R)',           data: d0.r,  borderColor: C.r,  borderWidth: 2.2, pointRadius:0, tension:0.3, fill:false },
+        { label:'Fotossíntese Líquida (FL)',data: d0.fl, borderColor: C.fl, borderWidth: 2.5, pointRadius:0, tension:0.4, fill:false,
+          segment:{ borderDash: ctx => ctx.p0.parsed.y < 0 ? [5,3] : undefined } },
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 400 },
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'rgba(255,253,248,0.97)',
+          borderColor:'rgba(26,22,18,0.12)', borderWidth:1,
+          titleColor:'#1A1612', bodyColor:'#5A4F44',
+          titleFont:{ family:"'DM Mono', monospace", size:11 },
+          bodyFont:{ family:"'DM Sans', sans-serif", size:11 },
+          callbacks:{
+            title: items => `T = ${items[0].label} °C`,
+            label: item => ` ${item.dataset.label}: ${item.parsed.y.toFixed(2)} kg[CO₂]/(ha·h)`
+          }
+        },
+        annotation:{ annotations: makeAnnotations(d0) }
+      },
+      scales:{
+        x:{ type:'linear', min:0, max:50,
+          title:{ display:true, text:'Temperatura (°C)', color: C.txt, font:{size:11, family:"'DM Sans', sans-serif"} },
+          grid:{ color: C.grid }, ticks:{ color: C.txt, font:{size:10}, stepSize:5 }
+        },
+        y:{ title:{ display:true, text:'kg[CO₂] / (ha · h)', color: C.txt, font:{size:11, family:"'DM Sans', sans-serif"} },
+          grid:{ color: C.grid }, ticks:{ color: C.txt, font:{size:10} }
+        }
+      }
+    },
+    plugins: [ window['chartjs-plugin-annotation'] ]
+  });
+
+  // slider
+  const slider = document.getElementById('toSlider');
+  const toVal  = document.getElementById('toVal');
+  slider.addEventListener('input', function() {
+    const To = +this.value;
+    toVal.textContent = To + ' °C';
+    const d = buildData(To);
+    chart.data.labels = d.temps;
+    chart.data.datasets[0].data = d.fb;
+    chart.data.datasets[1].data = d.r;
+    chart.data.datasets[2].data = d.fl;
+    chart.options.plugins.annotation.annotations = makeAnnotations(d);
+    chart.update();
+  });
+})();
+</script>
+
+<script>
+(function() {
+  const C = {
+    etc:  '#1B4F8A',
+    eta:  '#C1440E',
+    def:  '#7B2D8B',
+    grid: 'rgba(26,22,18,0.07)',
+    txt:  '#8C7D6E',
+  };
+
+  // theta axis: 0=PMP, 100=Sat (normalized %)
+  // critPct: where theta_c sits (% of axis)
+  function buildET(critPct) {
+    const pts = [];
+    const etc = [], eta = [], def = [];
+    const PMP = 10, CC = 70, SAT = 100;
+    const crit = critPct; // slider value
+
+    for (let t = 0; t <= 100; t += 1) {
+      pts.push(t);
+      // ETc: constant horizontal line (potential ET)
+      const etcV = (t >= PMP && t <= SAT) ? 6 : (t < PMP ? 0 : 6);
+      // ETa: 0 at PMP, rises linearly to ETc at crit, stays at ETc until CC,
+      //      then drops slightly above CC (anoxia zone B), hits ETc at CC
+      let etaV;
+      if (t <= PMP) {
+        etaV = 0;
+      } else if (t <= crit) {
+        etaV = 6 * (t - PMP) / (crit - PMP);
+      } else if (t <= CC) {
+        etaV = 6;
+      } else {
+        // anoxia zone: slight reduction above CC toward SAT
+        etaV = Math.max(0, 6 - 3.5 * Math.pow((t - CC) / (SAT - CC), 1.5));
+      }
+      etc.push(+(etcV).toFixed(3));
+      eta.push(+(etaV).toFixed(3));
+      def.push(+(Math.max(0, etcV - etaV)).toFixed(3));
+    }
+    return { pts, etc, eta, def, PMP, crit, CC, SAT };
+  }
+
+  function makeETAnnotations(d) {
+    return {
+      pmpLine: { type:'line', xMin: d.PMP, xMax: d.PMP, borderColor: C.eta, borderWidth:1.2, borderDash:[4,3],
+        label:{ content:'θPMP', display:true, position:'start', font:{size:10, family:"'DM Mono', monospace"}, color: C.eta, backgroundColor:'transparent', yAdjust:-4 }},
+      critLine: { type:'line', xMin: d.crit, xMax: d.crit, borderColor: C.def, borderWidth:1.4, borderDash:[4,3],
+        label:{ content:'θc', display:true, position:'start', font:{size:10, family:"'DM Mono', monospace"}, color: C.def, backgroundColor:'transparent', yAdjust:-4 }},
+      ccLine: { type:'line', xMin: d.CC, xMax: d.CC, borderColor: '#2D6A4F', borderWidth:1.2, borderDash:[4,3],
+        label:{ content:'θCC', display:true, position:'start', font:{size:10, family:"'DM Mono', monospace"}, color:'#2D6A4F', backgroundColor:'transparent', yAdjust:-4 }},
+      satLine: { type:'line', xMin: d.SAT, xMax: d.SAT, borderColor: C.etc, borderWidth:1.2, borderDash:[4,3],
+        label:{ content:'θS', display:true, position:'start', font:{size:10, family:"'DM Mono', monospace"}, color: C.etc, backgroundColor:'transparent', yAdjust:-4 }},
+      defBox: { type:'box', xMin: d.PMP, xMax: d.crit, yMin:0, yMax:6,
+        backgroundColor:'rgba(123,45,139,0.07)', borderColor:'rgba(123,45,139,0.2)', borderWidth:0.5,
+        label:{ content:'DEF', display:true, font:{size:10, family:"'DM Mono', monospace"}, color: C.def } },
+      zoneB: { type:'box', xMin: d.CC, xMax: d.SAT, yMin:0, yMax:6,
+        backgroundColor:'rgba(27,79,138,0.07)', borderColor:'rgba(27,79,138,0.15)', borderWidth:0.5,
+        label:{ content:'B', display:true, font:{size:11, family:"'Playfair Display', serif"}, color: '#1B4F8A' } },
+    };
+  }
+
+  const canvas2 = document.getElementById('etChart');
+  const d0 = buildET(45);
+
+  const etChart = new Chart(canvas2, {
+    type: 'line',
+    data: {
+      labels: d0.pts,
+      datasets: [
+        { label:'ETc (potencial)', data: d0.etc, borderColor: C.etc, borderWidth:2.2, pointRadius:0, tension:0, fill:false },
+        { label:'ETa (real)',      data: d0.eta, borderColor: C.eta, borderWidth:2.5, pointRadius:0, tension:0.3, fill:false },
+        { label:'DEF = ETc − ETa', data: d0.def, borderColor: C.def, borderWidth:1.5, borderDash:[5,3], pointRadius:0, tension:0.3, fill:false },
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 350 },
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'rgba(255,253,248,0.97)',
+          borderColor:'rgba(26,22,18,0.12)', borderWidth:1,
+          titleColor:'#1A1612', bodyColor:'#5A4F44',
+          titleFont:{ family:"'DM Mono', monospace", size:11 },
+          bodyFont:{ family:"'DM Sans', sans-serif", size:11 },
+          callbacks:{
+            title: items => `θ = ${items[0].label}%`,
+            label: item => ` ${item.dataset.label}: ${item.parsed.y.toFixed(2)} mm/dia`
+          }
+        },
+        annotation:{ annotations: makeETAnnotations(d0) }
+      },
+      scales:{
+        x:{ type:'linear', min:0, max:100,
+          title:{ display:true, text:'Umidade do solo θ (%)', color: C.txt, font:{size:11, family:"'DM Sans', sans-serif"} },
+          grid:{ color: C.grid }, ticks:{ color: C.txt, font:{size:10}, stepSize:10 }
+        },
+        y:{ min:0, max:7,
+          title:{ display:true, text:'Evapotranspiração (mm/dia)', color: C.txt, font:{size:11, family:"'DM Sans', sans-serif"} },
+          grid:{ color: C.grid }, ticks:{ color: C.txt, font:{size:10} }
+        }
+      }
+    },
+    plugins: [ window['chartjs-plugin-annotation'] ]
+  });
+
+  const critSlider = document.getElementById('critSlider');
+  const critVal    = document.getElementById('critVal');
+  critSlider.addEventListener('input', function() {
+    const cp = +this.value;
+    critVal.textContent = cp + '%';
+    const d = buildET(cp);
+    etChart.data.labels = d.pts;
+    etChart.data.datasets[0].data = d.etc;
+    etChart.data.datasets[1].data = d.eta;
+    etChart.data.datasets[2].data = d.def;
+    etChart.options.plugins.annotation.annotations = makeETAnnotations(d);
+    etChart.update();
+  });
+})();
+</script>
+
+<script>
+(function() {
+  const C = {
+    temp: '#C1440E',
+    ur:   '#1B4F8A',
+    psis: '#2D6A4F',
+    psif: '#C1440E',
+    psia: '#7B2D8B',
+    grid: 'rgba(26,22,18,0.07)',
+    txt:  '#8C7D6E',
+  };
+
+  // 24h time axis in hours (0=midnight, 12=noon, 24=midnight)
+  const hours = Array.from({length: 145}, (_, i) => +(i/6).toFixed(3));
+
+  // T: peaks at 13h, min at 5h — standard sinusoidal
+  const T_PEAK = 13, T_MAX = 35, T_MIN = 18;
+  const tempData = hours.map(h => {
+    const phase = (h - T_PEAK) / 24 * 2 * Math.PI;
+    return +((T_MAX + T_MIN)/2 + (T_MAX - T_MIN)/2 * Math.cos(phase)).toFixed(2);
+  });
+
+  // UR: INVERSE of T — minimum at 13h (same as T peak), maximum at 5h (same as T min)
+  // UR_min when T=max, UR_max when T=min → perfectly anti-correlated
+  const UR_MAX = 85, UR_MIN = 30;
+  const urData = hours.map(h => {
+    const phase = (h - T_PEAK) / 24 * 2 * Math.PI;
+    // cos(phase) is +1 at T peak → UR must be minimum there → negate
+    return +((UR_MAX + UR_MIN)/2 - (UR_MAX - UR_MIN)/2 * Math.cos(phase)).toFixed(2);
+  });
+
+  // Ψs (soil): nearly constant, slight draw-down midday from root uptake lag
+  const psisData = hours.map(h => {
+    const draw = 0.35 * Math.exp(-0.5*Math.pow((h-13)/3,2));
+    return +(-0.33 - draw).toFixed(3);
+  });
+
+  // Ψf (leaf): deep trough at 13h matching T peak / UR min, recovers overnight
+  const psifData = hours.map(h => {
+    const demand = 11.5 * Math.exp(-0.5*Math.pow((h-13)/3.5,2));
+    return +(-0.33 - demand).toFixed(3);
+  });
+
+  // Ψa (atm): derived from actual T and UR at each hour via psychrometric formula
+  // Ψa (MPa) = RT/Vw * ln(RH) ; converted to atm for display
+  // R=8.314 J/mol/K, Vw=18e-6 m³/mol, 1 MPa = 9.869 atm
+  const psiaData = hours.map((h, i) => {
+    const TK  = 273.15 + tempData[i];
+    const RH  = urData[i] / 100;
+    const psiMPa = (8.314 * TK) / 18e-6 * Math.log(RH) / 1e6;
+    const psiAtm = psiMPa * 9.869;
+    return +Math.max(-1000, Math.min(-1, psiAtm)).toFixed(1);
+  });
+
+  // ── TOP PANEL: T and UR ────────────────────────────
+  const ctx1 = document.getElementById('nicTurChart');
+  new Chart(ctx1, {
+    type:'line',
+    data:{
+      labels: hours,
+      datasets:[
+        { label:'T (°C)', data: tempData, borderColor: C.temp, borderWidth:2.2, pointRadius:0, tension:0.4, fill:false, yAxisID:'yT' },
+        { label:'UR (%)', data: urData,   borderColor: C.ur,   borderWidth:2.2, pointRadius:0, tension:0.4, fill:false, yAxisID:'yUR' },
+      ]
+    },
+    options:{
+      responsive:true, animation:{duration:0},
+      interaction:{mode:'index', intersect:false},
+      plugins:{ legend:{display:false},
+        tooltip:{ backgroundColor:'rgba(255,253,248,0.97)', borderColor:'rgba(26,22,18,0.12)', borderWidth:1,
+          titleColor:'#1A1612', bodyColor:'#5A4F44',
+          titleFont:{family:"'DM Mono',monospace",size:11}, bodyFont:{family:"'DM Sans',sans-serif",size:11},
+          callbacks:{ title: i=>`${i[0].label}h`, label: i=>` ${i.dataset.label}: ${i.parsed.y.toFixed(1)}` }
+        },
+        annotation:{ annotations:{
+          noon:{ type:'line', xMin:12, xMax:12, borderColor:'rgba(193,68,14,0.3)', borderWidth:1, borderDash:[4,3] }
+        }}
+      },
+      scales:{
+        x:{ type:'linear', min:0, max:24,
+          title:{display:false},
+          grid:{color:C.grid}, ticks:{color:C.txt, font:{size:9}, stepSize:3, callback: v=>v+'h'}
+        },
+        yT:{ position:'left', min:10, max:45,
+          title:{display:true, text:'T (°C)', color:C.temp, font:{size:10}},
+          grid:{color:C.grid}, ticks:{color:C.temp, font:{size:9}}
+        },
+        yUR:{ position:'right', min:20, max:100,
+          title:{display:true, text:'UR (%)', color:C.ur, font:{size:10}},
+          grid:{drawOnChartArea:false}, ticks:{color:C.ur, font:{size:9}}
+        },
+      }
+    },
+    plugins:[window['chartjs-plugin-annotation']]
+  });
+
+  // ── BOTTOM PANEL: Ψ dynamics ───────────────────────
+  const ctx2 = document.getElementById('nicPsiChart');
+
+  // Find lag region: where Ψf < Ψs with significant gap
+  const lagBoxes = {};
+  let lagStart = null;
+  hours.forEach((h,i) => {
+    const gap = psisData[i] - psifData[i];
+    if (gap > 1 && lagStart === null) lagStart = h;
+    if (gap <= 0.5 && lagStart !== null) {
+      lagBoxes['lag'+i] = { type:'box', xMin:lagStart, xMax:h, yMin:-16, yMax:0,
+        backgroundColor:'rgba(193,68,14,0.07)', borderColor:'rgba(193,68,14,0.15)', borderWidth:0.5 };
+      lagStart = null;
+    }
+  });
+
+  new Chart(ctx2, {
+    type:'line',
+    data:{
+      labels: hours,
+      datasets:[
+        { label:'Ψs (solo)',      data: psisData, borderColor: C.psis, borderWidth:2, pointRadius:0, tension:0.3, fill:false },
+        { label:'Ψf (foliar)',    data: psifData, borderColor: C.psif, borderWidth:2.2, pointRadius:0, tension:0.4, fill:false },
+        { label:'Ψa (atmosfera)', data: psiaData, borderColor: C.psia, borderWidth:1.5, pointRadius:0, tension:0.4, fill:false, borderDash:[5,3] },
+      ]
+    },
+    options:{
+      responsive:true, animation:{duration:0},
+      interaction:{mode:'index', intersect:false},
+      plugins:{ legend:{display:false},
+        tooltip:{ backgroundColor:'rgba(255,253,248,0.97)', borderColor:'rgba(26,22,18,0.12)', borderWidth:1,
+          titleColor:'#1A1612', bodyColor:'#5A4F44',
+          titleFont:{family:"'DM Mono',monospace",size:11}, bodyFont:{family:"'DM Sans',sans-serif",size:11},
+          callbacks:{ title: i=>`${i[0].label}h`,
+            label: i=>` ${i.dataset.label}: ${Number(i.parsed.y).toFixed(1)} atm` }
+        },
+        annotation:{ annotations:{
+          pmpLine:{ type:'line', yMin:-15, yMax:-15, borderColor:'rgba(193,68,14,0.5)', borderWidth:1.2, borderDash:[4,3],
+            label:{content:'Ψf = −15 atm (PMP)', display:true, position:'end', font:{size:9,family:"'DM Mono',monospace"}, color:'#C1440E', backgroundColor:'transparent'}},
+          ccLine: { type:'line', yMin:-0.33, yMax:-0.33, borderColor:'rgba(45,106,79,0.5)', borderWidth:1.2, borderDash:[4,3],
+            label:{content:'Ψs = −⅓ atm (CC)', display:true, position:'start', font:{size:9,family:"'DM Mono',monospace"}, color:'#2D6A4F', backgroundColor:'transparent'}},
+          noon:{ type:'line', xMin:12, xMax:12, borderColor:'rgba(193,68,14,0.3)', borderWidth:1, borderDash:[4,3] },
+          ...lagBoxes
+        }}
+      },
+      scales:{
+        x:{ type:'linear', min:0, max:24,
+          title:{display:true, text:'Hora do dia (h)', color:C.txt, font:{size:11,family:"'DM Sans',sans-serif"}},
+          grid:{color:C.grid}, ticks:{color:C.txt, font:{size:9}, stepSize:3, callback:v=>v+'h'}
+        },
+        y:{ min:-20, max:1,
+          title:{display:true, text:'Potencial hídrico (atm)', color:C.txt, font:{size:11,family:"'DM Sans',sans-serif"}},
+          grid:{color:C.grid}, ticks:{color:C.txt, font:{size:9}}
+        }
+      }
+    },
+    plugins:[window['chartjs-plugin-annotation']]
+  });
+})();
+</script>

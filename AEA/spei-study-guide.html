@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPEI — Roteiro de Estudo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&family=Source+Serif+4:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #d2a8ff;
+    --accent5: #ffa657;
+    --wet: #58a6ff;
+    --dry: #f78166;
+    --neutral: #8b949e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    padding: 80px 40px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(88,166,255,0.08);
+    border: 1px solid rgba(88,166,255,0.2);
+    padding: 4px 12px;
+    display: inline-block;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+    max-width: 620px;
+  }
+
+  /* PAPER QUOTE */
+  .paper-quote {
+    background: var(--surface);
+    border-left: 3px solid var(--accent4);
+    padding: 28px 32px;
+    margin: 48px 40px;
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+  }
+
+  .paper-quote::before {
+    content: '"';
+    font-family: 'Playfair Display', serif;
+    font-size: 5rem;
+    color: var(--accent4);
+    opacity: 0.2;
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    line-height: 1;
+  }
+
+  .paper-quote p {
+    font-style: italic;
+    color: #c9d1d9;
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .paper-quote cite {
+    display: block;
+    margin-top: 12px;
+    font-style: normal;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+
+  /* SECTION HEADERS */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 64px 0 32px;
+  }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.25);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--accent4);
+    margin-bottom: 12px;
+  }
+
+  p {
+    color: #c9d1d9;
+    margin-bottom: 16px;
+    font-size: 0.97rem;
+  }
+
+  /* FORMULA BOX */
+  .formula-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 36px;
+    margin: 32px 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .formula-label {
+    position: absolute;
+    top: -1px;
+    left: 20px;
+    background: var(--accent5);
+    color: #0d1117;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .formula {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+
+  .formula .operator {
+    color: var(--accent5);
+    margin: 0 8px;
+  }
+
+  .formula .var-p { color: var(--wet); }
+  .formula .var-pet { color: var(--dry); }
+
+  .formula-desc {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .var-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .var-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* CONCEPT CARDS */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+  }
+
+  .card h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .card p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 0;
+  }
+
+  /* SPEI SCALE VISUAL */
+  .spei-scale {
+    margin: 32px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+
+  .scale-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .scale-bar {
+    height: 20px;
+    border-radius: 2px;
+    background: linear-gradient(to right,
+      #7b1f1f 0%,
+      #c0392b 12%,
+      #e74c3c 22%,
+      #e67e22 33%,
+      #95a5a6 50%,
+      #3498db 65%,
+      #2980b9 77%,
+      #1a5276 88%,
+      #0d2b45 100%
+    );
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .scale-tick {
+    position: absolute;
+    bottom: -20px;
+    transform: translateX(-50%);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+  }
+
+  .scale-ticks {
+    position: relative;
+    height: 28px;
+    margin-bottom: 20px;
+  }
+
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .scale-label {
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .scale-label span {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* TIMESCALE VISUAL */
+  .timescale-vis {
+    margin: 32px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 32px;
+  }
+
+  .ts-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .ts-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent);
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .ts-bar-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .ts-bar {
+    height: 22px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ts-bar-inner {
+    height: 100%;
+    border-radius: 2px;
+    animation: grow 1s ease-out forwards;
+    transform-origin: left;
+  }
+
+  @keyframes grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  .ts-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* VS COMPARISON */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    margin: 32px 0;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .comp-col {
+    padding: 28px 24px;
+    background: var(--surface);
+  }
+
+  .comp-col:first-child { background: rgba(88,166,255,0.05); }
+  .comp-col:last-child { background: rgba(247,129,102,0.05); }
+
+  .comp-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 0 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    writing-mode: vertical-rl;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .comp-h {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .comp-col:first-child .comp-h { color: var(--wet); }
+  .comp-col:last-child .comp-h { color: var(--dry); }
+
+  .comp-list {
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .comp-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .comp-list li:last-child { border-bottom: none; }
+  .comp-list li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+
+  /* KEY TERMS */
+  .key-terms {
+    margin: 32px 0;
+  }
+
+  .term {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 0;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .term:last-child { border-bottom: none; }
+
+  .term-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent4);
+    font-weight: 600;
+    padding-top: 2px;
+  }
+
+  .term-def {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 0;
+  }
+
+  /* STUDY QUESTIONS */
+  .questions {
+    margin: 32px 0;
+    counter-reset: q;
+  }
+
+  .question {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .question:hover { border-color: var(--accent4); }
+
+  .q-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent4);
+    background: rgba(210,168,255,0.1);
+    border: 1px solid rgba(210,168,255,0.2);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    counter-increment: q;
+  }
+
+  .q-text {
+    font-size: 0.9rem;
+    color: var(--text);
+    padding-top: 4px;
+  }
+
+  .q-answer {
+    display: none;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid var(--border);
+    line-height: 1.7;
+  }
+
+  .question.open .q-answer { display: block; }
+  .question.open { border-color: var(--accent4); }
+
+  /* SUMMARY BOX */
+  .summary {
+    background: linear-gradient(135deg, rgba(88,166,255,0.06), rgba(210,168,255,0.06));
+    border: 1px solid rgba(88,166,255,0.2);
+    padding: 36px;
+    margin: 48px 0;
+  }
+
+  .summary h3 {
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-style: normal;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 20px;
+  }
+
+  .summary-points {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .summary-points li {
+    display: flex;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  .summary-points li::before {
+    content: '◆';
+    color: var(--accent);
+    font-size: 0.6rem;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  /* ANIMATIONS */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px;
+    border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 640px) {
+    header, main { padding-left: 20px; padding-right: 20px; }
+    .cards { grid-template-columns: 1fr; }
+    .comparison { grid-template-columns: 1fr; }
+    .comp-divider { writing-mode: horizontal-tb; padding: 12px; }
+    .term { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="reveal">
+  <div class="tag">Roteiro de Estudo · Climatologia</div>
+  <h1>O Índice <em>SPEI</em><br>como métrica de seca</h1>
+  <p class="subtitle">Um guia estruturado para compreender o Standardized Precipitation-Evapotranspiration Index a partir de trecho científico.</p>
+</header>
+
+<div class="paper-quote reveal">
+  <p>Drought was assessed using the Standardized Precipitation-Evapotranspiration Index (SPEI), a standardized metric that quantifies deviations in climatic water balance (precipitation minus potential evapotranspiration, P − PET) relative to long-term conditions. SPEI integrates precipitation and atmospheric evaporative demand, represented by PET, enabling assessment of drought severity across multiple timescales.</p>
+  <cite>— Trecho original do paper (Vicente-Serrano et al., 2010)</cite>
+</div>
+
+<main>
+
+  <!-- SECTION 1 -->
+  <div class="section-header reveal">
+    <div class="section-num">01</div>
+    <h2>O que é o SPEI?</h2>
+  </div>
+
+  <p class="reveal">O SPEI (<em>Standardized Precipitation-Evapotranspiration Index</em>) é um índice climático padronizado que mede a <strong>intensidade de secas</strong> comparando o quanto choveu com o quanto a atmosfera poderia evaporar. Ele foi proposto por Vicente-Serrano et al. (2010) como uma evolução do clássico SPI, incorporando a demanda evaporativa atmosférica.</p>
+
+  <div class="formula-box reveal">
+    <div class="formula-label">Fórmula Central</div>
+    <div class="formula">
+      <span class="var-p">P</span>
+      <span class="operator">−</span>
+      <span class="var-pet">PET</span>
+      <span class="operator">=</span>
+      Balanço Hídrico
+    </div>
+    <div class="formula-desc">
+      <div class="var-item">
+        <div class="var-dot" style="background:var(--wet)"></div>
+        <span><strong style="color:var(--wet)">P</strong> — Precipitação observada</span>
+      </div>
+      <div class="var-item">
+        <div class="var-dot" style="background:var(--dry)"></div>
+        <span><strong style="color:var(--dry)">PET</strong> — Evapotranspiração Potencial</span>
+      </div>
+      <div class="var-item">
+        <div class="var-dot" style="background:var(--accent4)"></div>
+        <span>Resultado padronizado → <strong style="color:var(--accent4)">SPEI</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <p class="reveal">O valor de P − PET é então <strong>padronizado</strong> em relação às condições históricas de longo prazo do mesmo local. Isso permite comparar a intensidade de um episódio de seca entre diferentes regiões do mundo e em diferentes épocas do ano.</p>
+
+  <!-- SECTION 2 -->
+  <div class="section-header reveal">
+    <div class="section-num">02</div>
+    <h2>Conceitos-chave do trecho</h2>
+  </div>
+
+  <div class="key-terms reveal">
+    <div class="term">
+      <div class="term-name">Standardized Metric</div>
+      <p class="term-def">Métrica padronizada: o índice é transformado estatisticamente para ter média zero e desvio padrão unitário, permitindo comparações entre locais e períodos distintos sem viés da escala local.</p>
+    </div>
+    <div class="term">
+      <div class="term-name">Climatic Water Balance</div>
+      <p class="term-def">Balanço hídrico climático: diferença entre a água que entra no sistema (chuva) e a água que poderia sair via evapotranspiração. Quando negativo, indica déficit hídrico — potencial de seca.</p>
+    </div>
+    <div class="term">
+      <div class="term-name">Potential Evapotranspiration (PET)</div>
+      <p class="term-def">Evapotranspiração potencial: quantidade máxima de água que a atmosfera conseguiria evaporar se houvesse disponibilidade ilimitada. Representa a "demanda" atmosférica por água, influenciada por temperatura, radiação, umidade e vento.</p>
+    </div>
+    <div class="term">
+      <div class="term-name">Long-term Conditions</div>
+      <p class="term-def">Condições de longo prazo: a série histórica de referência (normalmente 30+ anos) usada para calcular o "normal climático" do local. O SPEI mede o desvio do período atual em relação a esse histórico.</p>
+    </div>
+    <div class="term">
+      <div class="term-name">Multiple Timescales</div>
+      <p class="term-def">Múltiplas escalas temporais: o SPEI pode ser calculado para acumulados de 1, 3, 6, 12 meses etc. Escalas curtas refletem secas agrícolas; escalas longas refletem secas hidrológicas e de reservatórios.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-header reveal">
+    <div class="section-num">03</div>
+    <h2>Interpretando os valores</h2>
+  </div>
+
+  <p class="reveal">Por ser padronizado, o SPEI segue uma distribuição aproximadamente normal. Os valores são expressos em <strong>desvios padrão</strong> acima ou abaixo da média histórica:</p>
+
+  <div class="spei-scale reveal">
+    <div class="scale-title">Escala SPEI — Classificação de Intensidade</div>
+    <div class="scale-bar"></div>
+    <div class="scale-ticks">
+      <div class="scale-tick" style="left:0%">−3</div>
+      <div class="scale-tick" style="left:16.6%">−2</div>
+      <div class="scale-tick" style="left:33.3%">−1</div>
+      <div class="scale-tick" style="left:50%">0</div>
+      <div class="scale-tick" style="left:66.6%">+1</div>
+      <div class="scale-tick" style="left:83.3%">+2</div>
+      <div class="scale-tick" style="left:100%">+3</div>
+    </div>
+    <div class="scale-labels">
+      <div class="scale-label" style="color:#c0392b">Seca<br>Excepcional<span>≤ −2</span></div>
+      <div class="scale-label" style="color:#e67e22">Seca<br>Severa<span>−1.5 a −2</span></div>
+      <div class="scale-label" style="color:#95a5a6">Neutro<span>−1 a +1</span></div>
+      <div class="scale-label" style="color:#3498db">Úmido<br>Moderado<span>+1.5 a +2</span></div>
+      <div class="scale-label" style="color:#1a5276">Úmido<br>Excepcional<span>≥ +2</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-header reveal">
+    <div class="section-num">04</div>
+    <h2>Múltiplas escalas temporais</h2>
+  </div>
+
+  <p class="reveal">Uma das grandes vantagens do SPEI (e do SPI) sobre índices mais simples é a capacidade de ser calculado em diferentes janelas de acumulação, capturando tipos distintos de seca:</p>
+
+  <div class="timescale-vis reveal">
+    <div class="scale-title">Escalas Temporais & Aplicações</div>
+
+    <div class="ts-row">
+      <div class="ts-label">SPEI-1</div>
+      <div class="ts-bar-wrap">
+        <div class="ts-bar" style="background:rgba(88,166,255,0.1)">
+          <div class="ts-bar-inner" style="width:15%; background: rgba(88,166,255,0.6); animation-delay:0.1s"></div>
+        </div>
+        <div class="ts-desc">1 mês — Seca meteorológica de curto prazo · impacto imediato na agricultura de sequeiro</div>
+      </div>
+    </div>
+
+    <div class="ts-row">
+      <div class="ts-label">SPEI-3</div>
+      <div class="ts-bar-wrap">
+        <div class="ts-bar" style="background:rgba(88,166,255,0.1)">
+          <div class="ts-bar-inner" style="width:35%; background: rgba(88,166,255,0.65); animation-delay:0.2s"></div>
+        </div>
+        <div class="ts-desc">3 meses — Seca agrícola · umidade do solo e estresse hídrico das culturas</div>
+      </div>
+    </div>
+
+    <div class="ts-row">
+      <div class="ts-label">SPEI-6</div>
+      <div class="ts-bar-wrap">
+        <div class="ts-bar" style="background:rgba(88,166,255,0.1)">
+          <div class="ts-bar-inner" style="width:55%; background: rgba(88,166,255,0.7); animation-delay:0.3s"></div>
+        </div>
+        <div class="ts-desc">6 meses — Seca sazonal · abastecimento hídrico urbano, vazão de rios</div>
+      </div>
+    </div>
+
+    <div class="ts-row">
+      <div class="ts-label">SPEI-12</div>
+      <div class="ts-bar-wrap">
+        <div class="ts-bar" style="background:rgba(88,166,255,0.1)">
+          <div class="ts-bar-inner" style="width:78%; background: rgba(88,166,255,0.8); animation-delay:0.4s"></div>
+        </div>
+        <div class="ts-desc">12 meses — Seca hidrológica · nível de reservatórios, aquíferos</div>
+      </div>
+    </div>
+
+    <div class="ts-row">
+      <div class="ts-label">SPEI-24</div>
+      <div class="ts-bar-wrap">
+        <div class="ts-bar" style="background:rgba(88,166,255,0.1)">
+          <div class="ts-bar-inner" style="width:100%; background: rgba(88,166,255,0.9); animation-delay:0.5s"></div>
+        </div>
+        <div class="ts-desc">24 meses — Seca de longa duração · impacto socioeconômico, recursos hídricos estruturais</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section-header reveal">
+    <div class="section-num">05</div>
+    <h2>SPEI vs. SPI — Por que incluir o PET?</h2>
+  </div>
+
+  <p class="reveal">O SPEI é uma evolução direta do <strong>SPI</strong> (Standardized Precipitation Index). A diferença essencial é a incorporação da evapotranspiração potencial, tornando-o sensível ao aquecimento global:</p>
+
+  <div class="comparison reveal">
+    <div class="comp-col">
+      <div class="comp-h">SPI — Só Precipitação</div>
+      <ul class="comp-list">
+        <li>Usa apenas dados de chuva</li>
+        <li>Simples de calcular</li>
+        <li>Ignora efeito da temperatura</li>
+        <li>Não captura secas por calor extremo</li>
+        <li>Adequado para climas frios e estáveis</li>
+      </ul>
+    </div>
+    <div class="comp-divider">versus</div>
+    <div class="comp-col">
+      <div class="comp-h">SPEI — P minus PET</div>
+      <ul class="comp-list">
+        <li>Integra precipitação + temperatura</li>
+        <li>Sensível ao aquecimento global</li>
+        <li>Captura "secas por calor"</li>
+        <li>Mais robusto em cenários de mudança climática</li>
+        <li>Requer mais dados de entrada</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section-header reveal">
+    <div class="section-num">06</div>
+    <h2>Cards de revisão rápida</h2>
+  </div>
+
+  <div class="cards reveal">
+    <div class="card">
+      <div class="card-icon">🌧️</div>
+      <h4>Precipitação (P)</h4>
+      <p>Entrada de água no sistema. Quando P é maior que PET, há superávit — condição úmida. Quando P &lt; PET, há déficit hídrico.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">☀️</div>
+      <h4>Evapotranspiração (PET)</h4>
+      <p>Demanda atmosférica por água. Aumenta com temperatura, radiação solar e vento seco. Em clima aquecido, PET cresce mesmo sem mudança na chuva.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📏</div>
+      <h4>Padronização</h4>
+      <p>O índice é transformado para média 0 e desvio padrão 1. Isso elimina diferenças regionais e permite comparar o Nordeste com a Amazônia, por exemplo.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⏱️</div>
+      <h4>Multiescala</h4>
+      <p>A mesma fórmula é aplicada a janelas temporais diferentes (1, 3, 6, 12 meses), revelando tipos diferentes de seca no mesmo local.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="section-header reveal">
+    <div class="section-num">07</div>
+    <h2>Perguntas de estudo</h2>
+  </div>
+
+  <p class="reveal">Clique em cada questão para revelar a resposta.</p>
+
+  <div class="questions reveal">
+
+    <div class="question" onclick="this.classList.toggle('open')">
+      <div class="q-num">Q1</div>
+      <div>
+        <div class="q-text">Por que o SPEI é chamado de "índice padronizado"? O que isso significa na prática?</div>
+        <div class="q-answer">A padronização transforma os valores de balanço hídrico (P − PET) em desvios padrão em relação à média histórica do local. Na prática, isso significa que um SPEI de −2 representa a mesma intensidade de anomalia seca em São Paulo e no Ceará, mesmo que os valores absolutos de chuva sejam completamente diferentes. Permite comparações espaciais e temporais válidas.</div>
+      </div>
+    </div>
+
+    <div class="question" onclick="this.classList.toggle('open')">
+      <div class="q-num">Q2</div>
+      <div>
+        <div class="q-text">O que acontece com o SPEI em um cenário de aumento de temperatura, mesmo sem mudança na precipitação?</div>
+        <div class="q-answer">Com o aumento da temperatura, a PET (evapotranspiração potencial) aumenta, pois a atmosfera mais quente tem maior capacidade de evaporar água. Com a mesma quantidade de chuva, o balanço P − PET se torna mais negativo, resultando em valores de SPEI mais baixos — ou seja, secas mais intensas. Este é um aspecto crítico do SPEI em contextos de mudança climática: ele captura a seca amplificada pelo calor, algo que o SPI não consegue fazer.</div>
+      </div>
+    </div>
+
+    <div class="question" onclick="this.classList.toggle('open')">
+      <div class="q-num">Q3</div>
+      <div>
+        <div class="q-text">Em que situação você usaria SPEI-3 vs. SPEI-12 para avaliar impactos de seca?</div>
+        <div class="q-answer">O SPEI-3 (acumulado de 3 meses) é adequado para avaliar impactos agrícolas de curto prazo, como stress hídrico em culturas durante uma estação de crescimento. O SPEI-12 (acumulado de 12 meses) é mais indicado para avaliar impactos hidrológicos de longo prazo, como o nível de reservatórios, vazão de rios perenes e recarga de aquíferos, que respondem lentamente a variações climáticas.</div>
+      </div>
+    </div>
+
+    <div class="question" onclick="this.classList.toggle('open')">
+      <div class="q-num">Q4</div>
+      <div>
+        <div class="q-text">O que significa o termo "deviations relative to long-term conditions" no texto?</div>
+        <div class="q-answer">Significa que o SPEI não mede o valor absoluto do balanço hídrico, mas sim o quanto o período atual desvia da média histórica do mesmo local e mês. A "condição de longo prazo" é a climatologia de referência (ex: normal de 1961–1990 ou 1981–2010). Um desvio de −2 desvios padrão indica que o atual balanço hídrico está muito abaixo do que é historicamente normal para aquele local e época do ano.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary reveal">
+    <h3>◆ Síntese do Trecho</h3>
+    <ul class="summary-points">
+      <li>O SPEI é um índice que mede seca por meio do <strong>balanço hídrico climático</strong> (P − PET), combinando precipitação e demanda evaporativa atmosférica.</li>
+      <li>A <strong>padronização</strong> permite comparar condições de seca em qualquer lugar do mundo e em qualquer período, eliminando o viés do clima local.</li>
+      <li>A incorporação do <strong>PET</strong> é a principal vantagem sobre índices baseados apenas em precipitação: torna o SPEI sensível ao aquecimento global.</li>
+      <li>A possibilidade de cálculo em <strong>múltiplas escalas temporais</strong> permite identificar desde secas meteorológicas de curto prazo até secas hidrológicas estruturais de longa duração.</li>
+    </ul>
+  </div>
+
+</main>
+
+<footer>
+  SPEI · Vicente-Serrano et al., 2010 · Roteiro de Estudo gerado por Claude
+</footer>
+
+<script>
+  // Intersection Observer for reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
