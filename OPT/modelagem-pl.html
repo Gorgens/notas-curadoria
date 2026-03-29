@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modelagem em Programação Linear</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1117;
+  --surface: #161b27;
+  --surface2: #1e2535;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8eaf0;
+  --muted: #7a8099;
+  --accent: #4ecca3;
+  --accent2: #f7b731;
+  --accent3: #ee6b6e;
+  --accent4: #6c8ff7;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --display: 'Syne', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  overflow: hidden;
+}
+.hero-glow {
+  position: absolute;
+  width: 800px; height: 800px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(78,204,163,0.07) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(78,204,163,0.1);
+  border: 1px solid rgba(78,204,163,0.25);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 2rem;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  max-width: 800px;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p.lead {
+  font-size: 1.15rem;
+  color: var(--muted);
+  max-width: 520px;
+  margin: 1.5rem auto 0;
+  font-weight: 300;
+}
+.hero-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 3rem;
+}
+.hero-nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.hero-nav a:hover { border-color: var(--accent); color: var(--accent); background: rgba(78,204,163,0.06); }
+.hero-nav a.primary { background: var(--accent); color: #0e1117; border-color: var(--accent); }
+.hero-nav a.primary:hover { background: #5ed9b3; }
+.hero-scroll {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 12px;
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: fadeUp 1s ease 0.5s both;
+}
+.hero-scroll svg { animation: bounce 2s ease-in-out infinite; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px) translateX(-50%)} to{opacity:1;transform:translateY(0) translateX(-50%)} }
+
+/* ── MAIN LAYOUT ── */
+.wrapper { max-width: 900px; margin: 0 auto; padding: 0 2rem 6rem; position: relative; z-index: 1; }
+
+/* ── NAV TABS ── */
+.chapter-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,17,23,0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chapter-nav::-webkit-scrollbar { display: none; }
+.chapter-nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 1rem 1.25rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.chapter-nav a:hover { color: var(--text); }
+.chapter-nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+.chapter-nav .num {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--surface2);
+  font-size: 11px;
+  font-family: var(--mono);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.chapter-nav a.active .num { background: rgba(78,204,163,0.2); color: var(--accent); }
+
+/* ── SECTION ── */
+.chapter {
+  padding: 5rem 0 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+.chapter.visible { opacity: 1; transform: none; }
+
+.chapter-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.chapter-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.chapter h2 {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+}
+.chapter > p { color: var(--muted); font-size: 1.05rem; max-width: 680px; margin-bottom: 2rem; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+.card h3 {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card p { color: var(--muted); font-size: 0.95rem; line-height: 1.65; }
+
+.card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .card-row { grid-template-columns: 1fr; } }
+.card-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+@media(max-width:700px){ .card-row3 { grid-template-columns: 1fr; } }
+
+/* ── MATH BLOCKS ── */
+.math-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  line-height: 2;
+  margin: 1rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.math-box::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px 0 0 2px;
+}
+.math-box .comment { color: var(--muted); font-size: 0.82rem; }
+.math-box .kw { color: var(--accent); }
+.math-box .num { color: var(--accent2); }
+.math-box .var { color: var(--accent4); }
+
+.inline-math {
+  font-family: var(--mono);
+  background: rgba(108,143,247,0.12);
+  color: var(--accent4);
+  padding: 1px 7px;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+/* ── HIGHLIGHT BLOCKS ── */
+.insight {
+  border: 1px solid rgba(78,204,163,0.2);
+  background: rgba(78,204,163,0.05);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.insight .icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.insight p { color: var(--text); font-size: 0.95rem; margin: 0; }
+.insight strong { color: var(--accent); }
+
+.warning {
+  border: 1px solid rgba(247,183,49,0.2);
+  background: rgba(247,183,49,0.05);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.warning p { color: var(--text); font-size: 0.95rem; margin: 0; }
+
+/* ── INTERACTIVE DEMOS ── */
+.demo {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin: 1.5rem 0;
+}
+.demo h4 {
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  margin-bottom: 1.25rem;
+}
+.slider-group { margin: 0.75rem 0; }
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.slider-label span:last-child {
+  font-family: var(--mono);
+  color: var(--text);
+  font-size: 13px;
+  background: var(--surface2);
+  padding: 2px 8px;
+  border-radius: 6px;
+  min-width: 36px;
+  text-align: center;
+}
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface2);
+  outline: none;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type=range]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--pct, 0%), var(--surface2) var(--pct, 0%));
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+  gap: 10px;
+  margin-top: 1.25rem;
+}
+.metric {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+}
+.metric label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 4px;
+}
+.metric .val {
+  font-family: var(--mono);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.metric .val.ok { color: var(--accent); }
+.metric .val.warn { color: var(--accent2); }
+.metric .val.err { color: var(--accent3); }
+.metric .val.highlight { color: var(--accent2); font-size: 1.6rem; }
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-top: 1rem;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+.status-bar.ok { background: rgba(78,204,163,0.1); color: var(--accent); border: 1px solid rgba(78,204,163,0.2); }
+.status-bar.err { background: rgba(238,107,110,0.1); color: var(--accent3); border: 1px solid rgba(238,107,110,0.2); }
+.status-bar.warn { background: rgba(247,183,49,0.1); color: var(--accent2); border: 1px solid rgba(247,183,49,0.2); }
+
+/* ── ETAPAS ── */
+.steps { counter-reset: step; display: flex; flex-direction: column; gap: 1rem; }
+.step {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.step-num {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--accent);
+  margin-top: 2px;
+}
+.step-body h4 { font-family: var(--display); font-weight: 600; margin-bottom: 0.4rem; font-size: 1rem; }
+.step-body p { color: var(--muted); font-size: 0.93rem; margin: 0; }
+
+/* ── ALTERNATIVAS TABLE ── */
+.alt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin: 1rem 0;
+}
+.alt-table th {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.alt-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+.alt-table td:first-child { color: var(--text); font-weight: 500; }
+.alt-table tr.viable td { color: var(--text); }
+.alt-table tr.best td { color: var(--accent); font-weight: 500; }
+.alt-table tr.infeasible td { color: var(--accent3); opacity: 0.7; text-decoration: line-through; }
+.tag-ok { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+.tag-err { color: var(--accent3); font-family: var(--mono); font-size: 12px; }
+.tag-best { color: var(--accent2); font-family: var(--mono); font-size: 12px; }
+
+/* ── MODEL HIGHLIGHT ── */
+.model-box {
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(78,204,163,0.04) 100%);
+  border: 1px solid rgba(78,204,163,0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.model-box::after {
+  content: 'MODELO';
+  position: absolute;
+  top: 14px; right: 16px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(78,204,163,0.3);
+}
+.model-box h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+.model-line {
+  font-family: var(--mono);
+  font-size: 1rem;
+  padding: 6px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.model-line .lbl { color: var(--muted); font-size: 11px; min-width: 60px; text-align: right; }
+.model-line .expr { color: var(--text); }
+.model-line .expr .hi { color: var(--accent2); }
+.model-line .expr .var { color: var(--accent4); }
+.model-line .expr .op { color: var(--accent); }
+.model-line .comment { color: var(--muted); font-size: 12px; }
+.model-line.objective .expr { color: var(--accent2); font-size: 1.1rem; }
+.model-divider { border: none; border-top: 1px dashed var(--border2); margin: 10px 0; }
+
+/* ── PRESSUPOSIÇÕES ── */
+.presupposition {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: var(--surface);
+  position: relative;
+}
+.presupposition .big-letter {
+  font-family: var(--display);
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  position: absolute;
+  right: 1.25rem;
+  top: 1rem;
+  opacity: 0.07;
+  color: var(--accent);
+}
+.presupposition h4 { font-family: var(--display); font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem; color: var(--accent4); }
+.presupposition p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+/* ── CANVAS CHART ── */
+.chart-wrap {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 1rem;
+  margin: 1rem 0;
+}
+canvas { border-radius: 8px; }
+
+/* ── RESULT OPTIMAL ── */
+.optimal-banner {
+  background: linear-gradient(135deg, rgba(247,183,49,0.08), rgba(78,204,163,0.08));
+  border: 1px solid rgba(247,183,49,0.2);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  margin: 2rem 0;
+}
+.optimal-banner h3 {
+  font-family: var(--display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.optimal-banner .big-val {
+  font-family: var(--mono);
+  font-size: 3rem;
+  font-weight: 500;
+  color: var(--accent2);
+  line-height: 1.1;
+}
+.optimal-banner p { color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; }
+.optimal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+/* ── BUTTON ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(78,204,163,0.06); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #0e1117; }
+.btn.primary:hover { background: #5ed9b3; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1rem; }
+
+/* ── FOREST PROBLEM ── */
+.forest-problem {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+.forest-header {
+  background: linear-gradient(135deg, rgba(99,153,34,0.15), rgba(78,204,163,0.08));
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.forest-icon { font-size: 2.5rem; line-height: 1; }
+.forest-header h3 { font-family: var(--display); font-weight: 700; font-size: 1.15rem; margin-bottom: 0.35rem; }
+.forest-header p { color: var(--muted); font-size: 0.9rem; margin: 0; }
+.forest-body { padding: 1.5rem; }
+.forest-formulations {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+@media(max-width:550px){ .forest-formulations { grid-template-columns: 1fr; } }
+.form-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.form-card.f1 { border-color: rgba(108,143,247,0.25); background: rgba(108,143,247,0.05); }
+.form-card.f2 { border-color: rgba(247,183,49,0.25); background: rgba(247,183,49,0.05); }
+.form-card h4 { font-family: var(--display); font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.form-card.f1 h4 { color: var(--accent4); }
+.form-card.f2 h4 { color: var(--accent2); }
+.form-stat { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); padding: 4px 0; }
+.form-stat span:last-child { font-family: var(--mono); color: var(--text); }
+
+/* ── CONSTRAINT BARS ── */
+.constraint-bar {
+  margin-bottom: 1rem;
+}
+.constraint-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.constraint-header span:first-child { color: var(--muted); }
+.constraint-header span:last-child { font-family: var(--mono); font-size: 12px; }
+.bar-track { background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1), background-color 0.3s; }
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+}
+.footer a { color: var(--accent); text-decoration: none; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:none} }
+.animate-in { animation: fadeIn 0.4s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="badge"><span class="badge-dot"></span>Material Interativo · Pesquisa Operacional</div>
+  <h1>Modelando o mundo com <em>Programação Linear</em></h1>
+  <p class="lead">Aprenda a traduzir problemas reais em modelos matemáticos — e deixe os computadores encontrarem a solução ótima.</p>
+  <nav class="hero-nav">
+    <a href="#funcao" class="primary">Começar ↓</a>
+    <a href="#decisao">Tomada de decisão</a>
+    <a href="#problema">Problema florestal</a>
+    <a href="#modelagem">Modelagem</a>
+    <a href="#otimizacao">Otimização</a>
+  </nav>
+  <div class="hero-scroll">
+    <span>role para baixo</span>
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="chapter-nav" id="mainNav">
+  <a href="#funcao" class="active"><span class="num">1</span>Função</a>
+  <a href="#equacao"><span class="num">2</span>Equação</a>
+  <a href="#inequacao"><span class="num">3</span>Inequação</a>
+  <a href="#decisao"><span class="num">4</span>Decisão</a>
+  <a href="#problema"><span class="num">5</span>Problema</a>
+  <a href="#modelagem"><span class="num">6</span>Modelagem</a>
+  <a href="#modelo-linear"><span class="num">7</span>Modelo Linear</a>
+  <a href="#otimizacao"><span class="num">8</span>Otimização</a>
+</nav>
+
+<div class="wrapper">
+
+<!-- ─── CAP 1: FUNÇÃO ─── -->
+<section class="chapter" id="funcao">
+  <div class="chapter-label">Capítulo 01</div>
+  <h2>O que é uma <em style="color:var(--accent)">função</em>?</h2>
+  <p>Uma função é uma lei que associa cada elemento de um conjunto A a um único elemento de um conjunto B. Em programação linear, funções descrevem como quantidades variam conforme nossas decisões.</p>
+
+  <div class="card-row">
+    <div class="card">
+      <h3>📐 Definição formal</h3>
+      <p>Uma função <span class="inline-math">f: A → B</span> associa cada <strong>x ∈ A</strong> (domínio) a exatamente um <strong>y ∈ B</strong> (contradomínio). Escrevemos <span class="inline-math">y = f(x)</span>.</p>
+    </div>
+    <div class="card">
+      <h3>📊 Forma linear</h3>
+      <p>Uma função linear de duas variáveis tem a forma <span class="inline-math">f(x,y) = ax + by</span>, onde <strong>a</strong> e <strong>b</strong> são coeficientes constantes.</p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <span class="comment">// Função objetivo geral em PL:</span><br>
+    <span class="kw">f(x, y)</span> = <span class="num">c₁</span>·<span class="var">x</span> + <span class="num">c₂</span>·<span class="var">y</span><br>
+    <span class="comment">// Exemplo: calcular lucro total de dois produtos</span>
+  </div>
+
+  <div class="insight">
+    <div class="icon">💡</div>
+    <p>Em PL, a função que queremos maximizar ou minimizar se chama <strong>função objetivo</strong> — ela representa o que nos importa: lucro, custo, produtividade ou tempo.</p>
+  </div>
+
+  <div class="demo">
+    <h4>▸ Explore a função f(x, y) = 10x + 12y</h4>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Esta é exatamente a função do nosso problema florestal! Arraste os sliders para ver como o valor muda.</p>
+    <div class="slider-group">
+      <div class="slider-label"><span>Hectares com Formulação 1 (<em>x</em>)</span><span id="fn_x_v">20</span></div>
+      <input type="range" min="0" max="100" value="20" id="fn_x" oninput="calcFn()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>Hectares com Formulação 2 (<em>y</em>)</span><span id="fn_y_v">50</span></div>
+      <input type="range" min="0" max="100" value="50" id="fn_y" oninput="calcFn()">
+    </div>
+    <div class="result-grid">
+      <div class="metric"><label>Cálculo</label><div class="val" id="fn_calc" style="font-size:0.95rem">10×20 + 12×50</div></div>
+      <div class="metric"><label>Ganho de produtividade</label><div class="val highlight" id="fn_result">800</div></div>
+    </div>
+    <p style="color:var(--muted);font-size:12px;margin-top:0.75rem;font-family:var(--mono)">f(x,y) = 10x + 12y representa o ganho total em m³ de madeira</p>
+  </div>
+</section>
+
+<!-- ─── CAP 2: EQUAÇÃO ─── -->
+<section class="chapter" id="equacao">
+  <div class="chapter-label">Capítulo 02</div>
+  <h2>O que é uma <em style="color:var(--accent4)">equação</em>?</h2>
+  <p>Uma equação linear é uma expressão matemática formada por variáveis e seus coeficientes, numa relação de <strong>igualdade</strong> com um termo independente. Ela define exatamente uma reta no plano.</p>
+
+  <div class="math-box" style="--acc:#6c8ff7">
+    <span class="comment">// Equação linear geral:</span><br>
+    <span style="color:#6c8ff7">c₁x₁ + c₂x₂ + ... + cₙxₙ = b</span><br>
+    <span class="comment">// Exemplo simples:</span><br>
+    <span class="var">x</span> + <span class="var">y</span> = <span class="num">100</span> &nbsp; <span class="comment">// todos os 100 hectares adubados</span>
+  </div>
+
+  <div class="card-row">
+    <div class="card">
+      <h3 style="color:var(--accent4)">🎯 Igualdade estrita</h3>
+      <p>A equação é satisfeita <strong>apenas pelos pontos exatos</strong> sobre a reta. Fora dela, a igualdade não vale.</p>
+    </div>
+    <div class="card">
+      <h3>📌 Em PL</h3>
+      <p>Equações aparecem como <strong>restrições de igualdade</strong> — quando um recurso deve ser consumido totalmente.</p>
+    </div>
+  </div>
+
+  <div class="demo">
+    <h4>▸ Verifique: x + y = 100 (restrição de área)</h4>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">A área total é de 100 hectares. Se somarmos os hectares de cada formulação, deve dar exatamente 100.</p>
+    <div class="slider-group">
+      <div class="slider-label"><span>Hectares F1 (<em>x</em>)</span><span id="eq_x_v">40</span></div>
+      <input type="range" min="0" max="100" value="40" id="eq_x" oninput="calcEq()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>Hectares F2 (<em>y</em>)</span><span id="eq_y_v">60</span></div>
+      <input type="range" min="0" max="100" value="60" id="eq_y" oninput="calcEq()">
+    </div>
+    <div class="result-grid">
+      <div class="metric"><label>Total de hectares</label><div class="val" id="eq_total">100</div></div>
+      <div class="metric"><label>Restrição</label><div class="val" id="eq_rhs">x + y = 100</div></div>
+    </div>
+    <div class="status-bar ok" id="eq_status">✓ Soma exata — todos os hectares serão adubados</div>
+  </div>
+
+  <div class="warning">
+    <div class="icon">⚠️</div>
+    <p>Restrições modeladas como <strong>equações</strong> são mais restritivas — o solucionador tem menos liberdade. Em geral, preferimos <strong>inequações</strong> para deixar mais flexibilidade ao otimizador.</p>
+  </div>
+</section>
+
+<!-- ─── CAP 3: INEQUAÇÃO ─── -->
+<section class="chapter" id="inequacao">
+  <div class="chapter-label">Capítulo 03</div>
+  <h2>O que é uma <em style="color:var(--accent2)">inequação</em>?</h2>
+  <p>Uma inequação é uma expressão com relação de <strong>desigualdade</strong>. Ao contrário de uma equação (que representa uma reta), uma inequação representa uma <em>região</em> do plano — todos os pontos que satisfazem a condição.</p>
+
+  <div class="math-box">
+    <span class="comment">// Inequação linear geral:</span><br>
+    <span class="kw">c₁x₁ + c₂x₂ + ... + cₙxₙ</span> <span style="color:var(--accent2)">≤</span> <span class="num">b</span><br>
+    <span class="comment">// Exemplo do problema florestal:</span><br>
+    <span class="var">AHF1</span> + <span class="num">3</span>·<span class="var">AHF2</span> <span style="color:var(--accent2)">≤</span> <span class="num">270</span> &nbsp; <span class="comment">// estoque de adubo</span>
+  </div>
+
+  <div class="card-row3">
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:0.5rem">◼</div>
+      <h3 style="justify-content:center;font-size:0.9rem">ax + by &lt; c</h3>
+      <p style="font-size:0.85rem">Estritamente menor — fronteira <strong>não incluída</strong></p>
+    </div>
+    <div class="card" style="border-color:rgba(78,204,163,0.3);text-align:center">
+      <div style="font-size:2rem;margin-bottom:0.5rem">◼</div>
+      <h3 style="color:var(--accent);justify-content:center;font-size:0.9rem">ax + by ≤ c</h3>
+      <p style="font-size:0.85rem">Menor ou igual — fronteira <strong>incluída</strong>. Mais comum em PL!</p>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:0.5rem">◼</div>
+      <h3 style="justify-content:center;font-size:0.9rem">ax + by ≥ c</h3>
+      <p style="font-size:0.85rem">Maior ou igual — limita por baixo (ex: demanda mínima)</p>
+    </div>
+  </div>
+
+  <div class="demo">
+    <h4>▸ Verifique a inequação do estoque: AHF1 + 3·AHF2 ≤ 270</h4>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:1rem">Cada hectare com F1 consome 1 unidade de adubo; com F2, consome 3 unidades. O estoque total é de 270 unidades.</p>
+    <div class="slider-group">
+      <div class="slider-label"><span>AHF1 (hectares com Formulação 1)</span><span id="iq_x_v">50</span></div>
+      <input type="range" min="0" max="100" value="50" id="iq_x" oninput="calcIq()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>AHF2 (hectares com Formulação 2)</span><span id="iq_y_v">50</span></div>
+      <input type="range" min="0" max="100" value="50" id="iq_y" oninput="calcIq()">
+    </div>
+    <div class="result-grid">
+      <div class="metric"><label>Adubo usado</label><div class="val" id="iq_used">200</div></div>
+      <div class="metric"><label>Limite</label><div class="val">270</div></div>
+      <div class="metric"><label>Margem</label><div class="val ok" id="iq_margin">70 restantes</div></div>
+    </div>
+    <div class="constraint-bar" style="margin-top:1rem">
+      <div class="constraint-header"><span>Uso do estoque</span><span id="iq_pct">74%</span></div>
+      <div class="bar-track"><div class="bar-fill" id="iq_bar" style="width:74%;background:var(--accent)"></div></div>
+    </div>
+    <div class="status-bar ok" id="iq_status">✓ Dentro do estoque disponível</div>
+  </div>
+</section>
+
+<!-- ─── CAP 4: TOMADA DE DECISÃO ─── -->
+<section class="chapter" id="decisao">
+  <div class="chapter-label">Capítulo 04</div>
+  <h2>Processo de <em style="color:var(--accent)">tomada de decisão</em></h2>
+  <p>A tomada de decisão é uma tarefa fundamental da gestão. A alta competitividade do mercado exige processos claros e bem fundamentados — e apenas o formalismo matemático pode garantir isso.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h4>Identificar o problema</h4>
+        <p>A etapa mais difícil: diferente dos livros, os problemas na prática não estão claros nem bem delimitados. É preciso articular com precisão o que precisa ser resolvido.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h4>Definir as variáveis de decisão</h4>
+        <p>Quais são as grandezas que o tomador de decisão controla? Cada variável representa uma escolha — uma quantidade a determinar. Nomeá-las com clareza é o primeiro passo para construir o modelo matemático. No problema florestal: <span class="inline-math">AHF1</span> = hectares adubados com Formulação 1 e <span class="inline-math">AHF2</span> = hectares adubados com Formulação 2.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h4>Formular o objetivo</h4>
+        <p>O que deve ser atingido quando a solução for encontrada? Maximizar lucro? Minimizar custo? O objetivo é a bússola do modelo.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <h4>Analisar as limitações</h4>
+        <p>Quais são as restrições que podem limitar a solução? Recursos escassos, capacidades máximas, requisitos mínimos — tudo isso vira uma inequação.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">05</div>
+      <div class="step-body">
+        <h4>Definir as alternativas</h4>
+        <p>Quais são as possíveis soluções? Em PL, as variáveis de decisão definem o espaço de todas as combinações possíveis.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">06</div>
+      <div class="step-body">
+        <h4>Avaliar as alternativas</h4>
+        <p>Utilizar um procedimento para escolher a melhor solução. Com infinitas alternativas, isso é trabalho para um computador — por isso criamos o modelo matemático.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="icon">🌿</div>
+    <p>No setor florestal, engenheiros são demandados para resolver desde <strong>alocação de equipes</strong> até a escolha de <strong>quais talhões cortar nos próximos 30 anos</strong>. Todas essas demandas precisam ser transformadas em linguagem matemática.</p>
+  </div>
+</section>
+
+<!-- ─── CAP 5: PROBLEMA ─── -->
+<section class="chapter" id="problema">
+  <div class="chapter-label">Capítulo 05</div>
+  <h2>Um problema <em style="color:var(--accent)">real</em></h2>
+  <p>Vamos aplicar os cinco passos a um problema concreto do setor florestal — adubação de floresta com duas formulações disponíveis.</p>
+
+  <div class="forest-problem">
+    <div class="forest-header">
+      <div class="forest-icon">🌲</div>
+      <div>
+        <h3>Adubação florestal — maximizando a produtividade</h3>
+        <p>Um proprietário precisa adubar sua área florestal. Ele possui duas formulações disponíveis e precisa decidir a melhor combinação para maximizar o ganho de produtividade.</p>
+      </div>
+    </div>
+    <div class="forest-body">
+      <div class="forest-formulations">
+        <div class="form-card f1">
+          <h4>Formulação 1 (AHF1)</h4>
+          <div class="form-stat"><span>Ganho por hectare</span><span>10 m³</span></div>
+          <div class="form-stat"><span>Adubo por hectare</span><span>1 unidade</span></div>
+        </div>
+        <div class="form-card f2">
+          <h4>Formulação 2 (AHF2)</h4>
+          <div class="form-stat"><span>Ganho por hectare</span><span>12 m³</span></div>
+          <div class="form-stat"><span>Adubo por hectare</span><span>3 unidades</span></div>
+        </div>
+      </div>
+      <div class="card" style="background:var(--surface2)">
+        <h3>📦 Recursos disponíveis</h3>
+        <div style="display:flex;gap:2rem;margin-top:0.5rem;flex-wrap:wrap">
+          <div><span style="font-family:var(--mono);font-size:1.4rem;color:var(--accent)">100</span><br><span style="color:var(--muted);font-size:13px">hectares de área florestal</span></div>
+          <div><span style="font-family:var(--mono);font-size:1.4rem;color:var(--accent2)">270</span><br><span style="color:var(--muted);font-size:13px">unidades de adubo em estoque</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--display);margin:2rem 0 1rem">Analisando alternativas manualmente</h3>
+
+  <table class="alt-table">
+    <thead>
+      <tr>
+        <th>Alternativa</th>
+        <th>AHF1 (ha)</th>
+        <th>AHF2 (ha)</th>
+        <th>Adubo gasto</th>
+        <th>Ganho (m³)</th>
+        <th>Viável?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="infeasible">
+        <td>Alt. 1</td>
+        <td>0</td>
+        <td>100</td>
+        <td>300 🚫</td>
+        <td>1200</td>
+        <td><span class="tag-err">✗ Inviável</span></td>
+      </tr>
+      <tr class="viable">
+        <td>Alt. 2</td>
+        <td>100</td>
+        <td>0</td>
+        <td>100 ✓</td>
+        <td>1000</td>
+        <td><span class="tag-ok">✓ Viável</span></td>
+      </tr>
+      <tr class="viable">
+        <td>Alt. 3</td>
+        <td>50</td>
+        <td>50</td>
+        <td>200 ✓</td>
+        <td>1100</td>
+        <td><span class="tag-ok">✓ Viável</span></td>
+      </tr>
+      <tr class="best">
+        <td>Ótima 🏆</td>
+        <td>15</td>
+        <td>85</td>
+        <td>270 ✓</td>
+        <td>1170</td>
+        <td><span class="tag-best">✓ Ótima!</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <div class="icon">🤖</div>
+    <p>É impossível explorar <strong>todas as alternativas</strong> manualmente — as combinações são infinitas. Por isso precisamos transformar o problema em linguagem matemática e usar um computador.</p>
+  </div>
+</section>
+
+<!-- ─── CAP 6: MODELAGEM ─── -->
+<section class="chapter" id="modelagem">
+  <div class="chapter-label">Capítulo 06</div>
+  <h2>Construindo o <em style="color:var(--accent)">modelo matemático</em></h2>
+  <p>A modelagem é a arte de representar situações reais por meio de expressões matemáticas. Aplicamos os cinco passos usando as ferramentas que aprendemos.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h4>Variáveis de decisão</h4>
+        <p>O desafio é descobrir quantos hectares serão adubados com cada formulação.</p>
+        <div class="math-box" style="margin-top:0.75rem">
+          <span class="var">AHF1</span> = hectares adubados com Formulação 1<br>
+          <span class="var">AHF2</span> = hectares adubados com Formulação 2
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h4>Função objetivo <span style="font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(78,204,163,0.1);padding:2px 8px;border-radius:4px">função</span></h4>
+        <p>Maximizar o ganho de produtividade total:</p>
+        <div class="math-box" style="margin-top:0.75rem">
+          <span class="kw">max</span> Z = <span class="num">10</span>·<span class="var">AHF1</span> + <span class="num">12</span>·<span class="var">AHF2</span>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h4>Restrições <span style="font-family:var(--mono);font-size:11px;color:var(--accent2);background:rgba(247,183,49,0.1);padding:2px 8px;border-radius:4px">inequações</span></h4>
+        <div class="math-box" style="margin-top:0.75rem">
+          <span class="var">AHF1</span> + <span class="var">AHF2</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≤ <span class="num">100</span> &nbsp; <span class="comment">// área máxima</span><br>
+          <span class="var">AHF1</span> + <span class="num">3</span>·<span class="var">AHF2</span> &nbsp;&nbsp;≤ <span class="num">270</span> &nbsp; <span class="comment">// estoque de adubo</span><br>
+          <span class="var">AHF1</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≥ <span class="num">0</span> &nbsp;&nbsp;&nbsp; <span class="comment">// não negativo</span><br>
+          <span class="var">AHF2</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;≥ <span class="num">0</span> &nbsp;&nbsp;&nbsp; <span class="comment">// não negativo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="model-box">
+    <h3>🔢 Modelo completo de Programação Linear</h3>
+    <div class="model-line objective">
+      <span class="lbl">max Z</span>
+      <span class="expr"><span class="hi">10</span>·<span class="var">AHF1</span> <span class="op">+</span> <span class="hi">12</span>·<span class="var">AHF2</span></span>
+    </div>
+    <hr class="model-divider">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:0.08em;margin:6px 0">sujeito a:</div>
+    <div class="model-line">
+      <span class="lbl">área</span>
+      <span class="expr"><span class="var">AHF1</span> <span class="op">+</span> <span class="var">AHF2</span> ≤ <span class="hi">100</span></span>
+      <span class="comment">(ha)</span>
+    </div>
+    <div class="model-line">
+      <span class="lbl">adubo</span>
+      <span class="expr"><span class="var">AHF1</span> <span class="op">+</span> <span class="hi">3</span>·<span class="var">AHF2</span> ≤ <span class="hi">270</span></span>
+      <span class="comment">(unidades)</span>
+    </div>
+    <div class="model-line">
+      <span class="lbl">dom.</span>
+      <span class="expr"><span class="var">AHF1</span>, <span class="var">AHF2</span> ≥ <span class="hi">0</span></span>
+    </div>
+  </div>
+
+  <!-- DEMO INTERATIVO -->
+  <div class="demo">
+    <h4>▸ Explore o modelo — verifique sua solução</h4>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:1.25rem">Ajuste AHF1 e AHF2 para ver o ganho de produtividade e o status de cada restrição em tempo real.</p>
+    <div class="slider-group">
+      <div class="slider-label"><span>AHF1 — Formulação 1 (hectares)</span><span id="m_x_v">15</span></div>
+      <input type="range" min="0" max="100" value="15" id="m_x" oninput="calcModel()">
+    </div>
+    <div class="slider-group">
+      <div class="slider-label"><span>AHF2 — Formulação 2 (hectares)</span><span id="m_y_v">85</span></div>
+      <input type="range" min="0" max="100" value="85" id="m_y" oninput="calcModel()">
+    </div>
+    <div class="result-grid">
+      <div class="metric"><label>Ganho Z (m³)</label><div class="val highlight" id="m_z">1170</div></div>
+      <div class="metric"><label>Área usada</label><div class="val ok" id="m_area">100 / 100</div></div>
+      <div class="metric"><label>Adubo usado</label><div class="val ok" id="m_adubo">270 / 270</div></div>
+    </div>
+
+    <div style="margin-top:1rem">
+      <div class="constraint-bar">
+        <div class="constraint-header"><span>Restrição de área (AHF1 + AHF2 ≤ 100)</span><span id="m_area_pct">100%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="m_area_bar" style="width:100%;background:var(--accent)"></div></div>
+      </div>
+      <div class="constraint-bar">
+        <div class="constraint-header"><span>Restrição de adubo (AHF1 + 3·AHF2 ≤ 270)</span><span id="m_adubo_pct">100%</span></div>
+        <div class="bar-track"><div class="bar-fill" id="m_adubo_bar" style="width:100%;background:var(--accent2)"></div></div>
+      </div>
+    </div>
+    <div class="status-bar ok" id="m_status">✓ Solução viável</div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="setOptimalForest()">🏆 Aplicar solução ótima (AHF1=15, AHF2=85)</button>
+      <button class="btn" onclick="setAlt2()">Alternativa 2 (AHF1=100)</button>
+      <button class="btn" onclick="setAlt3()">Alternativa 3 (50/50)</button>
+    </div>
+  </div>
+
+  <!-- Região viável -->
+  <h3 style="font-family:var(--display);margin:2rem 0 1rem">Região viável no plano</h3>
+  <div class="chart-wrap">
+    <canvas id="regChart" style="width:100%;display:block"></canvas>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:0.85rem;font-size:12px;font-family:var(--mono);color:var(--muted)">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:24px;height:3px;background:#4ecca3;display:inline-block;border-radius:2px"></span>AHF1 + AHF2 = 100 (área)</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:24px;height:3px;background:#f7b731;display:inline-block;border-radius:2px"></span>AHF1 + 3·AHF2 = 270 (adubo)</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:rgba(78,204,163,0.18);border:1px solid rgba(78,204,163,0.4);display:inline-block;border-radius:3px"></span>Região viável</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#f7b731;border-radius:50%;display:inline-block"></span>Plano atual</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;background:#4ecca3;border-radius:50%;display:inline-block"></span>Solução ótima</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CAP 7: MODELO LINEAR ─── -->
+<section class="chapter" id="modelo-linear">
+  <div class="chapter-label">Capítulo 07</div>
+  <h2>Pressuposições do <em style="color:var(--accent4)">modelo linear</em></h2>
+  <p>Para que um software de otimização possa resolver o problema, o modelo precisa satisfazer quatro pressuposições fundamentais.</p>
+
+  <div class="card-row">
+    <div class="presupposition">
+      <div class="big-letter">D</div>
+      <h4>Divisibilidade</h4>
+      <p>As variáveis de decisão podem assumir valores fracionários. Ex: 15,5 hectares é uma solução válida. Se apenas inteiros são permitidos, usamos Programação Inteira.</p>
+    </div>
+    <div class="presupposition">
+      <div class="big-letter">P</div>
+      <h4>Proporcionalidade</h4>
+      <p>O valor da função objetivo e das restrições são lineares em relação às variáveis. Dobrar AHF2 dobra tanto o ganho quanto o uso de adubo.</p>
+    </div>
+    <div class="presupposition">
+      <div class="big-letter">A</div>
+      <h4>Aditividade</h4>
+      <p>A contribuição total é a soma das contribuições individuais. O ganho de 15 ha com F1 mais 85 ha com F2 é exatamente 10×15 + 12×85 = 1170 m³.</p>
+    </div>
+    <div class="presupposition">
+      <div class="big-letter">C</div>
+      <h4>Certeza</h4>
+      <p>Todos os parâmetros são conhecidos com exatidão. Quando há incerteza, precisamos de Programação Estocástica ou Programação Robusta.</p>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="icon">⚡</div>
+    <p>Todo problema que satisfaz essas pressuposições pode ser resolvido pelo <strong>Algoritmo Simplex</strong> — um dos algoritmos mais importantes da história da computação. Ao final, ele indica: <em>solução ótima única</em>, <em>infinitas soluções ótimas</em>, ou <em>problema impossível</em>.</p>
+  </div>
+</section>
+
+<!-- ─── CAP 8: OTIMIZAÇÃO ─── -->
+<section class="chapter" id="otimizacao">
+  <div class="chapter-label">Capítulo 08</div>
+  <h2>Otimização — <em style="color:var(--accent)">a solução ótima</em></h2>
+  <p>Com o modelo em mãos, passamos o problema para um software de otimização. Ele usa o Algoritmo Simplex para percorrer os vértices da região viável e encontrar a combinação que maximiza Z.</p>
+
+  <div class="card">
+    <h3>💻 Código para o LPSolve</h3>
+    <div class="math-box">
+      <span class="comment">/* Entrada para o solver LPSolve */</span><br>
+      <span class="kw">max:</span> <span class="num">10</span> <span class="var">AHF1</span> + <span class="num">12</span> <span class="var">AHF2</span>;<br><br>
+      <span class="comment">area:</span> &nbsp;&nbsp;<span class="var">AHF1</span> + <span class="var">AHF2</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;= <span class="num">100</span>;<br>
+      <span class="comment">estoque:</span> <span class="var">AHF1</span> + <span class="num">3</span> <span class="var">AHF2</span> &lt;= <span class="num">270</span>;
+    </div>
+  </div>
+
+  <div class="optimal-banner">
+    <h3>🏆 Resultado ótimo do LPSolve</h3>
+    <div class="big-val">1170 m³</div>
+    <p>Ganho máximo de produtividade</p>
+    <div class="optimal-grid">
+      <div class="metric" style="background:rgba(108,143,247,0.1);border-color:rgba(108,143,247,0.2)">
+        <label>AHF1 — Formulação 1</label>
+        <div class="val" style="color:var(--accent4);font-size:2rem">15 ha</div>
+      </div>
+      <div class="metric" style="background:rgba(247,183,49,0.1);border-color:rgba(247,183,49,0.2)">
+        <label>AHF2 — Formulação 2</label>
+        <div class="val" style="color:var(--accent2);font-size:2rem">85 ha</div>
+      </div>
+    </div>
+    <div style="margin-top:1rem;padding:0.75rem;background:rgba(0,0,0,0.2);border-radius:10px;font-family:var(--mono);font-size:13px;color:var(--muted)">
+      Verificação: 1×15 + 3×85 = <span style="color:var(--accent2)">270 unidades</span> de adubo (limite exato) · 15 + 85 = <span style="color:var(--accent)">100 ha</span> adubados
+    </div>
+  </div>
+
+  <div class="card-row">
+    <div class="card">
+      <h3>📉 Redução de custos</h3>
+      <p>Otimizar possibilita identificar e eliminar desperdícios, alocando recursos mal-empregados ao destino correto.</p>
+    </div>
+    <div class="card">
+      <h3>⚡ Aumento de eficiência</h3>
+      <p>Corrigir falhas e padronizar execução geram mais resultados em menos tempo, com qualidade superior.</p>
+    </div>
+    <div class="card">
+      <h3>🎯 Melhoria de resultados</h3>
+      <p>A organização oferece maior qualidade a custo reduzido, destacando-se da concorrência.</p>
+    </div>
+    <div class="card">
+      <h3>🛡 Redução de riscos</h3>
+      <p>A padronização das atividades reduz o risco de erros humanos, acidentes e reincidência de falhas.</p>
+    </div>
+  </div>
+
+  <div class="insight">
+    <div class="icon">🌍</div>
+    <p>A demanda por ferramentas de otimização surgiu durante a <strong>Segunda Guerra Mundial</strong> para resolver problemas de alocação de recursos escassos. Com o avanço computacional, consolidou-se como a área de <strong>Pesquisa Operacional</strong>.</p>
+  </div>
+</section>
+
+</div><!-- /wrapper -->
+
+<footer class="footer">
+  <p>Material baseado em <em>Modelando o Mundo</em> (Eric Gorgens et al., Gala) · Licença CC BY-NC 4.0</p>
+  <p style="margin-top:0.5rem"><a href="https://www.learngala.com/cases/modelando-mundo" target="_blank">learngala.com/cases/modelando-mundo</a></p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── Slider track fill ──
+document.querySelectorAll('input[type=range]').forEach(r => {
+  const update = () => {
+    const pct = ((r.value - r.min) / (r.max - r.min)) * 100;
+    r.style.setProperty('--pct', pct + '%');
+  };
+  r.addEventListener('input', update);
+  update();
+});
+
+// ── Nav highlighting ──
+const sections = document.querySelectorAll('.chapter');
+const navLinks = document.querySelectorAll('.chapter-nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// ── Animate on scroll ──
+const animObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+sections.forEach(s => animObs.observe(s));
+
+// ── CAP 1: Função ──
+function calcFn() {
+  const x = +document.getElementById('fn_x').value;
+  const y = +document.getElementById('fn_y').value;
+  document.getElementById('fn_x_v').textContent = x;
+  document.getElementById('fn_y_v').textContent = y;
+  document.getElementById('fn_calc').textContent = `10×${x} + 12×${y}`;
+  document.getElementById('fn_result').textContent = 10*x + 12*y;
+}
+
+// ── CAP 2: Equação ──
+function calcEq() {
+  const x = +document.getElementById('eq_x').value;
+  const y = +document.getElementById('eq_y').value;
+  document.getElementById('eq_x_v').textContent = x;
+  document.getElementById('eq_y_v').textContent = y;
+  const total = x + y;
+  document.getElementById('eq_total').textContent = total;
+  const el = document.getElementById('eq_status');
+  if (total === 100) {
+    el.className = 'status-bar ok';
+    el.textContent = '✓ Soma exata — todos os 100 hectares serão adubados';
+  } else if (total < 100) {
+    el.className = 'status-bar warn';
+    el.textContent = `${total} < 100 — ${100-total} hectares sem adubação`;
+  } else {
+    el.className = 'status-bar err';
+    el.textContent = `${total} > 100 — excede a área disponível`;
+  }
+}
+
+// ── CAP 3: Inequação ──
+function calcIq() {
+  const x = +document.getElementById('iq_x').value;
+  const y = +document.getElementById('iq_y').value;
+  document.getElementById('iq_x_v').textContent = x;
+  document.getElementById('iq_y_v').textContent = y;
+  const used = x + 3*y;
+  const pct = Math.min(100, Math.round(used/270*100));
+  document.getElementById('iq_used').textContent = used;
+  document.getElementById('iq_pct').textContent = pct + '%';
+  const bar = document.getElementById('iq_bar');
+  bar.style.width = pct + '%';
+  const margin = 270 - used;
+  const mEl = document.getElementById('iq_margin');
+  const sEl = document.getElementById('iq_status');
+  if (margin > 0) {
+    bar.style.background = 'var(--accent)';
+    mEl.textContent = margin + ' restantes'; mEl.className = 'val ok';
+    sEl.className = 'status-bar ok'; sEl.textContent = `✓ ${used} ≤ 270 — dentro do estoque disponível`;
+  } else if (margin === 0) {
+    bar.style.background = 'var(--accent2)';
+    mEl.textContent = 'Limite exato'; mEl.className = 'val warn';
+    sEl.className = 'status-bar warn'; sEl.textContent = `${used} = 270 — na fronteira da restrição`;
+  } else {
+    bar.style.background = 'var(--accent3)';
+    mEl.textContent = Math.abs(margin) + ' excedentes'; mEl.className = 'val err';
+    sEl.className = 'status-bar err'; sEl.textContent = `✗ ${used} > 270 — estoque insuficiente`;
+  }
+}
+
+// ── CAP 6: Modelo ──
+let regChart = null;
+
+function calcModel() {
+  const x = +document.getElementById('m_x').value;
+  const y = +document.getElementById('m_y').value;
+  document.getElementById('m_x_v').textContent = x;
+  document.getElementById('m_y_v').textContent = y;
+  const z = 10*x + 12*y;
+  const area = x + y;
+  const adubo = x + 3*y;
+  document.getElementById('m_z').textContent = z;
+
+  const areaOk = area <= 100;
+  const aduboOk = adubo <= 270;
+  const viable = areaOk && aduboOk;
+
+  const areaPct = Math.min(100, Math.round(area/100*100));
+  const aduboPct = Math.min(100, Math.round(adubo/270*100));
+  document.getElementById('m_area_pct').textContent = areaPct + '%';
+  document.getElementById('m_adubo_pct').textContent = aduboPct + '%';
+  document.getElementById('m_area_bar').style.width = areaPct + '%';
+  document.getElementById('m_adubo_bar').style.width = aduboPct + '%';
+  document.getElementById('m_area_bar').style.background = areaOk ? 'var(--accent)' : 'var(--accent3)';
+  document.getElementById('m_adubo_bar').style.background = aduboOk ? 'var(--accent2)' : 'var(--accent3)';
+
+  const aEl = document.getElementById('m_area');
+  aEl.textContent = `${area} / 100 ha`; aEl.className = 'val ' + (areaOk ? 'ok' : 'err');
+  const bEl = document.getElementById('m_adubo');
+  bEl.textContent = `${adubo} / 270`; bEl.className = 'val ' + (aduboOk ? 'ok' : 'err');
+
+  const sEl = document.getElementById('m_status');
+  if (viable && z === 1170) {
+    sEl.className = 'status-bar ok'; sEl.textContent = '🏆 Solução ótima! Máximo ganho de produtividade.';
+  } else if (viable) {
+    sEl.className = 'status-bar ok'; sEl.textContent = '✓ Solução viável — tente melhorar!';
+  } else {
+    sEl.className = 'status-bar err'; sEl.textContent = '✗ Solução inviável — restrição violada';
+  }
+
+  if (regChart) {
+    regChart.update(x, y);
+  }
+}
+
+function setOptimalForest() {
+  document.getElementById('m_x').value = 15;
+  document.getElementById('m_y').value = 85;
+  calcModel();
+  updateSliderFills();
+}
+function setAlt2() {
+  document.getElementById('m_x').value = 100;
+  document.getElementById('m_y').value = 0;
+  calcModel(); updateSliderFills();
+}
+function setAlt3() {
+  document.getElementById('m_x').value = 50;
+  document.getElementById('m_y').value = 50;
+  calcModel(); updateSliderFills();
+}
+function updateSliderFills() {
+  document.querySelectorAll('input[type=range]').forEach(r => {
+    const pct = ((r.value - r.min) / (r.max - r.min)) * 100;
+    r.style.setProperty('--pct', pct + '%');
+  });
+}
+
+// ── Charts ──
+// ── Region chart: Canvas 2D with constraint lines and hatching ──
+const RC = {
+  canvas: null, ctx: null,
+  PAD: { top: 28, right: 28, bottom: 52, left: 52 },
+  MAX: 120,   // axis max value
+  currentX: 15, currentY: 85,
+
+  init() {
+    this.canvas = document.getElementById('regChart');
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  },
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = this.canvas.parentElement.clientWidth;
+    const h = Math.round(w * 0.72);
+    this.canvas.width  = w * dpr;
+    this.canvas.height = h * dpr;
+    this.canvas.style.height = h + 'px';
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.W = w; this.H = h;
+    this.draw();
+  },
+
+  // data → pixel
+  px(v) { return this.PAD.left + (v / this.MAX) * (this.W - this.PAD.left - this.PAD.right); },
+  py(v) { return this.H - this.PAD.bottom - (v / this.MAX) * (this.H - this.PAD.top - this.PAD.bottom); },
+
+  draw() {
+    const c = this.ctx;
+    const { W, H, PAD, MAX } = this;
+    const px = v => this.px(v);
+    const py = v => this.py(v);
+
+    c.clearRect(0, 0, W, H);
+
+    // ── Grid ──
+    c.strokeStyle = 'rgba(255,255,255,0.05)';
+    c.lineWidth = 1;
+    [0,20,40,60,80,100,120].forEach(v => {
+      c.beginPath(); c.moveTo(px(v), py(0)); c.lineTo(px(v), py(MAX)); c.stroke();
+      c.beginPath(); c.moveTo(px(0), py(v)); c.lineTo(px(MAX), py(v)); c.stroke();
+    });
+
+    // ── Axes ──
+    c.strokeStyle = 'rgba(255,255,255,0.25)';
+    c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(px(0), py(0)); c.lineTo(px(MAX), py(0)); c.stroke();
+    c.beginPath(); c.moveTo(px(0), py(0)); c.lineTo(px(0), py(MAX)); c.stroke();
+
+    // ── Axis ticks & labels ──
+    c.fillStyle = '#7a8099';
+    c.font = '11px "DM Mono", monospace';
+    c.textAlign = 'center';
+    [0,20,40,60,80,100].forEach(v => {
+      c.fillText(v, px(v), py(0) + 16);
+    });
+    c.textAlign = 'right';
+    [0,20,40,60,80,100].forEach(v => {
+      c.fillText(v, px(0) - 8, py(v) + 4);
+    });
+
+    // Axis titles
+    c.fillStyle = '#7a8099';
+    c.font = '12px "DM Sans", sans-serif';
+    c.textAlign = 'center';
+    c.fillText('AHF1 — Formulação 1 (hectares)', px(60), H - 8);
+    c.save();
+    c.translate(14, py(50));
+    c.rotate(-Math.PI / 2);
+    c.fillText('AHF2 — Formulação 2 (hectares)', 0, 0);
+    c.restore();
+
+    // ── Hachura da região viável ──
+    // Polygon vertices: (0,0), (100,0), (15,85), (0,90)
+    // Intersection of AHF1+AHF2=100 and AHF1+3AHF2=270:
+    //   AHF1 = 100 - AHF2  →  (100-AHF2) + 3AHF2 = 270  →  AHF2 = 85, AHF1 = 15
+    const feasible = [
+      [0, 0], [100, 0], [15, 85], [0, 90]
+    ];
+    // AHF1+3y=270 at AHF1=0 → y=90
+    c.save();
+    c.beginPath();
+    feasible.forEach(([x,y], i) => i===0 ? c.moveTo(px(x),py(y)) : c.lineTo(px(x),py(y)));
+    c.closePath();
+
+    // Hachura diagonal
+    c.save();
+    c.clip();
+    c.strokeStyle = 'rgba(78,204,163,0.22)';
+    c.lineWidth = 1;
+    const step = 10;
+    const left = px(0), top = py(MAX), right = px(MAX), bottom = py(0);
+    for (let d = -(bottom - top); d < (right - left); d += step) {
+      c.beginPath();
+      c.moveTo(left + d, top);
+      c.lineTo(left + d + (bottom - top), bottom);
+      c.stroke();
+    }
+    c.restore();
+
+    // Fill overlay (semi-transparent)
+    c.beginPath();
+    feasible.forEach(([x,y], i) => i===0 ? c.moveTo(px(x),py(y)) : c.lineTo(px(x),py(y)));
+    c.closePath();
+    c.fillStyle = 'rgba(78,204,163,0.07)';
+    c.fill();
+
+    // Feasible region border
+    c.beginPath();
+    feasible.forEach(([x,y], i) => i===0 ? c.moveTo(px(x),py(y)) : c.lineTo(px(x),py(y)));
+    c.closePath();
+    c.strokeStyle = 'rgba(78,204,163,0.3)';
+    c.lineWidth = 1;
+    c.setLineDash([4,4]);
+    c.stroke();
+    c.setLineDash([]);
+    c.restore();
+
+    // ── Restrição 1: AHF1 + AHF2 = 100 ──
+    // AHF2 = 100 - AHF1  →  (0,100) to (100,0)
+    c.beginPath();
+    c.moveTo(px(0),  py(100));
+    c.lineTo(px(100), py(0));
+    c.strokeStyle = '#4ecca3';
+    c.lineWidth = 2;
+    c.stroke();
+    // label
+    c.fillStyle = '#4ecca3';
+    c.font = '11px "DM Mono", monospace';
+    c.textAlign = 'left';
+    c.fillText('AHF1 + AHF2 = 100', px(42), py(62) - 8);
+
+    // ── Restrição 2: AHF1 + 3·AHF2 = 270 ──
+    // AHF2 = (270 - AHF1)/3  →  (0,90) to (120, (270-120)/3=50)
+    // but let's extend to axis intercepts: AHF1=0→AHF2=90; AHF2=0→AHF1=270 (off chart, so clip at MAX=120)
+    const r2_x0 = 0,  r2_y0 = 90;
+    const r2_x1 = 120, r2_y1 = (270-120)/3; // = 50
+    c.beginPath();
+    c.moveTo(px(r2_x0), py(r2_y0));
+    c.lineTo(px(r2_x1), py(r2_y1));
+    c.strokeStyle = '#f7b731';
+    c.lineWidth = 2;
+    c.stroke();
+    // label
+    c.fillStyle = '#f7b731';
+    c.font = '11px "DM Mono", monospace';
+    c.textAlign = 'left';
+    c.fillText('AHF1 + 3·AHF2 = 270', px(62), py(52) + 16);
+
+    // ── Vértices da região viável ──
+    const vertices = [[0,0],[100,0],[15,85],[0,90]];
+    vertices.forEach(([x,y]) => {
+      c.beginPath();
+      c.arc(px(x), py(y), 4, 0, Math.PI*2);
+      c.fillStyle = 'rgba(255,255,255,0.5)';
+      c.fill();
+    });
+
+    // ── Ponto ótimo (15, 85) ──
+    c.beginPath();
+    c.arc(px(15), py(85), 7, 0, Math.PI*2);
+    c.fillStyle = '#4ecca3';
+    c.fill();
+    c.fillStyle = '#0e1117';
+    c.font = 'bold 9px "DM Mono", monospace';
+    c.textAlign = 'center';
+    c.fillText('★', px(15), py(85) + 3);
+    c.fillStyle = '#4ecca3';
+    c.font = '10px "DM Mono", monospace';
+    c.textAlign = 'left';
+    c.fillText('ótimo (15, 85)', px(15) + 10, py(85) - 6);
+
+    // ── Ponto atual (móvel) ──
+    const cx = this.currentX, cy = this.currentY;
+    if (!(cx === 15 && cy === 85)) {
+      c.beginPath();
+      c.arc(px(cx), py(cy), 7, 0, Math.PI*2);
+      const viable = cx + cy <= 100 && cx + 3*cy <= 270;
+      c.fillStyle = viable ? '#f7b731' : '#ee6b6e';
+      c.fill();
+      c.strokeStyle = '#0e1117';
+      c.lineWidth = 1.5;
+      c.stroke();
+      c.fillStyle = viable ? '#f7b731' : '#ee6b6e';
+      c.font = '10px "DM Mono", monospace';
+      c.textAlign = 'left';
+      c.fillText(`(${cx}, ${cy})`, px(cx) + 10, py(cy) + 4);
+    }
+  },
+
+  update(x, y) {
+    this.currentX = x;
+    this.currentY = y;
+    this.draw();
+  }
+};
+
+function initCharts() {
+  RC.init();
+  regChart = RC; // keep reference for calcModel updates
+
+}
+
+// ── Init ──
+window.addEventListener('load', () => {
+  calcFn(); calcEq(); calcIq(); calcModel();
+  setTimeout(initCharts, 200);
+});
+</script>
+</body>
+</html>
