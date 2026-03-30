@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crescimento da Árvore — Dendrometria</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1208;
+    --bg2: #131a0c;
+    --bg3: #192110;
+    --card: #1c2613;
+    --card2: #243018;
+    --border: #2e3d1c;
+    --accent: #8fbf3a;
+    --accent2: #c8e86a;
+    --accent3: #5a8a1a;
+    --amber: #e8b84a;
+    --rust: #c0622a;
+    --text: #ddedb8;
+    --text2: #a8c070;
+    --text3: #6a8840;
+    --muted: #3e5220;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --serif: 'Playfair Display', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(13,18,8,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  nav .logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-right: auto;
+  }
+  nav a {
+    color: var(--text3);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 0 1rem;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  nav a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    padding: 120px 2rem 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 70% at 20% 50%, rgba(143,191,58,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 50% at 80% 30%, rgba(90,138,26,0.05) 0%, transparent 50%);
+  }
+  .tree-rings {
+    position: absolute;
+    right: -5vw; top: 50%;
+    transform: translateY(-50%);
+    width: 55vw; height: 55vw;
+    max-width: 700px; max-height: 700px;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative;
+    max-width: 700px;
+    z-index: 1;
+  }
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 2rem;
+    height: 1px;
+    background: var(--accent3);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--accent2);
+  }
+  .hero-desc {
+    font-size: 1rem;
+    color: var(--text2);
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+  }
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 0.75rem 1.75rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .hero-cta:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  /* SECTION */
+  section {
+    padding: 6rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 0.5rem;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 400;
+    color: var(--accent2);
+    margin-bottom: 0.75rem;
+  }
+  p { color: var(--text2); margin-bottom: 1rem; }
+  .lead { font-size: 1.05rem; color: var(--text); line-height: 1.9; }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* GRID CONCEPTS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1.75rem;
+    position: relative;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .card:hover { border-color: var(--accent3); background: var(--card2); }
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .card h3 { font-size: 1.1rem; color: var(--text); font-family: var(--sans); font-weight: 500; }
+  .card p { font-size: 0.9rem; }
+
+  /* INSTRUMENT CARD */
+  .instrument {
+    background: var(--card);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 0;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .instrument:hover { border-color: var(--accent3); }
+  .instrument-icon {
+    background: var(--bg3);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+  }
+  .instrument-body { padding: 1.25rem 1.5rem; }
+  .instrument-body h3 {
+    font-size: 1rem;
+    font-family: var(--sans);
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+  .instrument-body .inst-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.6rem;
+  }
+  .instrument-body p { font-size: 0.875rem; margin: 0; }
+
+  /* FORMULA BOX */
+  .formula {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 1.25rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    color: var(--accent2);
+    margin: 1.25rem 0;
+    line-height: 2;
+  }
+  .formula .f-label {
+    font-size: 0.75rem;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  .formula .f-note {
+    font-size: 0.8rem;
+    color: var(--text3);
+    margin-top: 0.5rem;
+    display: block;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    margin: 1.5rem 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+  }
+  thead tr {
+    background: var(--bg3);
+    border-bottom: 2px solid var(--border);
+  }
+  thead th {
+    padding: 0.75rem 1rem;
+    text-align: right;
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: var(--card2); }
+  tbody td {
+    padding: 0.65rem 1rem;
+    text-align: right;
+    color: var(--text2);
+  }
+  tbody td:first-child { text-align: left; color: var(--text); }
+  .td-highlight { color: var(--accent2) !important; font-weight: 500; }
+  .td-amber { color: var(--amber) !important; }
+  .td-rust { color: var(--rust) !important; }
+
+  /* CHART CONTAINER */
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin: 1.5rem 0;
+  }
+  .chart-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .chart-title {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    color: var(--text);
+  }
+  .chart-sub {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 320px;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.8rem 1.4rem;
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* INTERACTIVE CALC */
+  .calc-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-top: 1.5rem;
+  }
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .calc-field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.4rem;
+  }
+  .calc-field input {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .calc-field input:focus { border-color: var(--accent); }
+  .calc-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .result-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 1rem 1.2rem;
+  }
+  .result-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.3rem;
+  }
+  .result-value {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    color: var(--accent2);
+    font-weight: 500;
+  }
+  .result-unit {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text3);
+    margin-top: 0.1rem;
+  }
+  .btn-calc {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 1.5rem;
+  }
+  .btn-calc:hover { background: var(--accent2); }
+
+  /* GROWTH INTERPRETER */
+  .interp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border: 1px solid;
+    margin-top: 0.5rem;
+  }
+  .interp-fast { color: var(--accent2); border-color: var(--accent3); background: rgba(143,191,58,0.08); }
+  .interp-slow { color: var(--amber); border-color: #7a5820; background: rgba(232,184,74,0.08); }
+  .interp-mature { color: var(--rust); border-color: #6a3010; background: rgba(192,98,42,0.08); }
+
+  /* HIGHLIGHT CALLOUT */
+  .callout {
+    border-left: 3px solid var(--accent3);
+    padding: 1rem 1.5rem;
+    background: rgba(143,191,58,0.04);
+    margin: 1.5rem 0;
+  }
+  .callout.amber { border-left-color: var(--amber); background: rgba(232,184,74,0.04); }
+  .callout strong { color: var(--text); }
+
+  /* STUMP RINGS ILLUSTRATION */
+  .rings-svg { display: block; margin: 0 auto; }
+
+  /* PHASE INDICATOR */
+  .phase-bar {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    margin: 1.5rem 0;
+  }
+  .phase-cell {
+    height: 8px;
+    border-radius: 1px;
+    background: var(--bg3);
+    position: relative;
+    cursor: default;
+  }
+  .phase-cell.active-fast { background: var(--accent); }
+  .phase-cell.active-med { background: var(--amber); }
+  .phase-cell.active-slow { background: var(--rust); }
+
+  /* SCROLL SECTIONS */
+  .scroll-fade {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .scroll-fade.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+  }
+
+  /* RANGE SLIDER */
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    outline: none;
+    margin: 0.5rem 0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  /* TOOLTIP INLINE */
+  abbr {
+    text-decoration: underline dotted var(--text3);
+    cursor: help;
+    color: inherit;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+  @media(max-width: 768px){ .two-col { grid-template-columns: 1fr; gap: 2rem; } }
+
+  .number-big {
+    font-family: var(--mono);
+    font-size: 3rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+  .number-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="logo">⬡ Dendrometria</span>
+  <a href="#instrumentos">Instrumentos</a>
+  <a href="#dados">Dados</a>
+  <a href="#graficos">Gráficos</a>
+  <a href="#taxas">Taxas</a>
+  <a href="#calculadora">Calculadora</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <svg class="tree-rings" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="250" cy="250" r="240" fill="none" stroke="white" stroke-width="1"/>
+    <circle cx="250" cy="250" r="210" fill="none" stroke="white" stroke-width="1.5"/>
+    <circle cx="250" cy="250" r="178" fill="none" stroke="white" stroke-width="1"/>
+    <circle cx="250" cy="250" r="150" fill="none" stroke="white" stroke-width="2"/>
+    <circle cx="250" cy="250" r="122" fill="none" stroke="white" stroke-width="1"/>
+    <circle cx="250" cy="250" r="96" fill="none" stroke="white" stroke-width="1.5"/>
+    <circle cx="250" cy="250" r="70" fill="none" stroke="white" stroke-width="1"/>
+    <circle cx="250" cy="250" r="45" fill="none" stroke="white" stroke-width="2"/>
+    <circle cx="250" cy="250" r="22" fill="none" stroke="white" stroke-width="1"/>
+    <circle cx="250" cy="250" r="6" fill="white" opacity="0.5"/>
+  </svg>
+  <div class="hero-content">
+    <div class="hero-tag">Dendrometria · Inventário Florestal</div>
+    <h1>A vida inscrita<br>no <em>lenho</em></h1>
+    <p class="hero-desc">
+      Cada anel de crescimento é um registro fiel do tempo. Aprenda a medir, registrar e interpretar o crescimento da árvore individual — fundamentos da dendrometria moderna.
+    </p>
+    <a href="#instrumentos" class="hero-cta">▼ Começar</a>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- SEÇÃO 1: CONCEITOS -->
+<section id="conceitos" class="scroll-fade">
+  <div class="section-label">01 — Fundamentos</div>
+  <h2>O crescimento como <em>processo</em></h2>
+  <div class="two-col">
+    <div>
+      <p class="lead">A árvore cresce em múltiplas dimensões ao longo do tempo: em altura, em diâmetro, em volume e em biomassa. Cada uma dessas dimensões responde de forma diferente ao ambiente e ao estágio de desenvolvimento da planta.</p>
+      <p>Na dendrometria, o foco é quantificar essas dimensões com precisão — transformando o crescimento em números que podem ser comparados, modelados e interpretados.</p>
+      <div class="callout">
+        <strong>Crescimento primário</strong> — extensão longitudinal dos ápices meristemáticos, responsável pelo aumento em altura.<br><br>
+        <strong>Crescimento secundário</strong> — atividade do câmbio vascular, produzindo xilema (madeira) e floema, responsável pelo aumento em diâmetro.
+      </div>
+    </div>
+    <div>
+      <svg class="rings-svg" width="260" height="260" viewBox="0 0 260 260">
+        <defs>
+          <radialGradient id="rg1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#3e5220"/>
+            <stop offset="100%" stop-color="#131a0c"/>
+          </radialGradient>
+        </defs>
+        <circle cx="130" cy="130" r="125" fill="url(#rg1)" stroke="#2e3d1c" stroke-width="1"/>
+        <!-- Rings -->
+        <circle cx="130" cy="130" r="105" fill="none" stroke="#3a5018" stroke-width="1.5"/>
+        <circle cx="130" cy="130" r="85" fill="none" stroke="#4a6820" stroke-width="2"/>
+        <circle cx="130" cy="130" r="68" fill="none" stroke="#3a5018" stroke-width="1.5"/>
+        <circle cx="130" cy="130" r="52" fill="none" stroke="#5a7a28" stroke-width="2.5"/>
+        <circle cx="130" cy="130" r="38" fill="none" stroke="#3a5018" stroke-width="1.5"/>
+        <circle cx="130" cy="130" r="25" fill="none" stroke="#4a6820" stroke-width="2"/>
+        <circle cx="130" cy="130" r="13" fill="none" stroke="#3a5018" stroke-width="1.5"/>
+        <circle cx="130" cy="130" r="4" fill="#8fbf3a" opacity="0.6"/>
+        <!-- Labels -->
+        <text x="130" y="24" text-anchor="middle" fill="#6a8840" font-family="DM Mono, monospace" font-size="9" letter-spacing="0.1em">ANEL 8</text>
+        <text x="218" y="94" fill="#8fbf3a" font-family="DM Mono, monospace" font-size="9" text-anchor="middle">↑ CAI</text>
+        <line x1="210" y1="100" x2="190" y2="115" stroke="#8fbf3a" stroke-width="0.7" opacity="0.7"/>
+        <!-- Bark -->
+        <circle cx="130" cy="130" r="120" fill="none" stroke="#8fbf3a" stroke-width="1" stroke-dasharray="4,4" opacity="0.4"/>
+        <text x="130" y="252" text-anchor="middle" fill="#6a8840" font-family="DM Mono, monospace" font-size="9" letter-spacing="0.05em">CASCA</text>
+      </svg>
+      <p style="text-align:center; font-family:var(--mono); font-size:0.75rem; color:var(--text3); margin-top:0.5rem;">
+        Seção transversal esquemática · 8 anéis de crescimento
+      </p>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:3rem;">
+    <div class="card">
+      <span class="card-icon">📏</span>
+      <h3>DAP</h3>
+      <p>Diâmetro à Altura do Peito — medida padrão tomada a 1,30 m do solo. Base de cálculo para volume, área basal e biomassa.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">📐</span>
+      <h3>Altura Total</h3>
+      <p>Distância da base ao ápice da árvore. Fundamental para estimativa de volume com equações hipsométricas.</p>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔵</span>
+      <h3>Área Basal</h3>
+      <p>Área da seção transversal do tronco ao nível do DAP: <strong style="color:var(--accent);font-family:var(--mono)">g = π·d²/4</strong>. Expressa em m².</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SEÇÃO 2: INSTRUMENTOS -->
+<section id="instrumentos" class="scroll-fade">
+  <div class="section-label">02 — Instrumentos</div>
+  <h2>Medir para <em>compreender</em></h2>
+  <p class="lead" style="max-width:640px; margin-bottom:2.5rem;">O acompanhamento do crescimento da árvore exige instrumentos adequados a cada grandeza. Precisão e padronização são condições inegociáveis para gerar séries confiáveis.</p>
+
+  <div class="grid-2" style="gap:1rem;">
+    <div class="instrument">
+      <div class="instrument-icon">📏</div>
+      <div class="instrument-body">
+        <h3>Fita Diamétrica</h3>
+        <div class="inst-tag">Diâmetro · DAP</div>
+        <p>Fita graduada em π que mede a circunferência e exibe o diâmetro diretamente. Aplicada a 1,30 m do solo. Precisão de ±1 mm. Ideal para monitoramento contínuo da mesma árvore.</p>
+      </div>
+    </div>
+    <div class="instrument">
+      <div class="instrument-icon">🔧</div>
+      <div class="instrument-body">
+        <h3>Suta (Compasso Florestal)</h3>
+        <div class="inst-tag">Diâmetro · DAP</div>
+        <p>Instrumento de braços paralelos. Mede diâmetro diretamente por dois valores perpendiculares, usa-se a média. Mais robusto em campo que a fita; menor precisão em troncos irregulares.</p>
+      </div>
+    </div>
+    <div class="instrument">
+      <div class="instrument-icon">📡</div>
+      <div class="instrument-body">
+        <h3>Hipsômetro / Clinômetro</h3>
+        <div class="inst-tag">Altura Total · h</div>
+        <p>Instrumentos que medem ângulos verticais. O Blume-Leiss e o Suunto são os mais clássicos. A altura é calculada por trigonometria: h = d · tan(α₁) + d · tan(α₂), onde d é a distância horizontal.</p>
+      </div>
+    </div>
+    <div class="instrument">
+      <div class="instrument-icon">🔭</div>
+      <div class="instrument-body">
+        <h3>Hipsômetro Eletrônico / LiDAR</h3>
+        <div class="inst-tag">Altura · Estrutura</div>
+        <p>Distanciômetros a laser medem altura com precisão de milímetros. Sensores LiDAR permitem digitalização 3D completa da árvore, capturando arquitetura de copa e volume total.</p>
+      </div>
+    </div>
+    <div class="instrument">
+      <div class="instrument-icon">🔩</div>
+      <div class="instrument-body">
+        <h3>Trado de Pressler (Sonda de Incremento)</h3>
+        <div class="inst-tag">Anéis de crescimento</div>
+        <p>Extrai um cilindro de madeira (rolo de incremento) sem abater a árvore. Permite contar anéis, medir incrementos anuais e calcular a <abbr title="Increment annual ring width">largura dos anéis</abbr> sem destruir o indivíduo.</p>
+      </div>
+    </div>
+    <div class="instrument">
+      <div class="instrument-icon">📿</div>
+      <div class="instrument-body">
+        <h3>Dendrômetro de Banda</h3>
+        <div class="inst-tag">Incremento periódico</div>
+        <p>Fita metálica instalada permanentemente no tronco com mola de tensão. Registra variações de circunferência em escala de ±0,1 mm. Permite monitorar ritmo diário e sazonal de crescimento.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout amber" style="margin-top:2rem;">
+    <strong>Ponto de medição padrão (DAP):</strong> A altura de 1,30 m foi adotada internacionalmente por ser ergonomicamente conveniente e por minimizar o efeito das raízes na base do tronco. Em espécies com sapopemas ou raízes tabulares, o DAP pode ser tomado acima dessas estruturas, sendo registrado no protocolo.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SEÇÃO 3: DADOS -->
+<section id="dados" class="scroll-fade">
+  <div class="section-label">03 — Série de Dados</div>
+  <h2>Registrando o <em>tempo</em> na madeira</h2>
+
+  <div class="two-col">
+    <div>
+      <p>A tabela a seguir apresenta uma série de medições de uma árvore acompanhada desde o plantio até os 8 anos. Observe como as variáveis se comportam ao longo do tempo — não de forma linear, mas com <strong>ritmos variáveis</strong> que revelam as fases do crescimento.</p>
+      <p>A partir dessa série é possível calcular todas as taxas de crescimento e construir os gráficos de análise que veremos nas próximas seções.</p>
+
+      <div class="phase-bar" id="phaseBar">
+        <div class="phase-cell active-fast" title="Ano 1 — ICA crescendo (2 cm/ano)"></div>
+        <div class="phase-cell active-fast" title="Ano 2 — ICA crescendo (3 cm/ano)"></div>
+        <div class="phase-cell active-fast" title="Ano 3 — ICA crescendo (5 cm/ano)"></div>
+        <div class="phase-cell active-fast" title="Ano 4 — ICA máximo (7 cm/ano)"></div>
+        <div class="phase-cell active-fast" title="Ano 5 — ICA máximo (7 cm/ano)"></div>
+        <div class="phase-cell active-med" title="Ano 6 — ICA cruza IMA, declina (5 cm/ano)"></div>
+        <div class="phase-cell active-slow" title="Ano 7 — ICA declinando (3 cm/ano)"></div>
+        <div class="phase-cell active-slow" title="Ano 8 — ICA mínimo (2 cm/ano)"></div>
+      </div>
+      <p style="font-family:var(--mono); font-size:0.72rem; color:var(--text3);">
+        <span style="color:var(--accent)">■</span> Acelerado &nbsp;
+        <span style="color:var(--amber)">■</span> Moderado &nbsp;
+        <span style="color:var(--rust)">■</span> Desacelerado
+      </p>
+    </div>
+
+    <div>
+      <div class="table-wrap">
+        <table id="mainTable">
+          <thead>
+            <tr>
+              <th>Idade (anos)</th>
+              <th>Diâmetro (cm)</th>
+              <th>Altura (m)</th>
+              <th>Área Basal (cm²)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SEÇÃO 4: GRÁFICOS -->
+<section id="graficos" class="scroll-fade">
+  <div class="section-label">04 — Representação Gráfica</div>
+  <h2>Ver para <em>entender</em></h2>
+
+  <p class="lead" style="max-width: 640px; margin-bottom: 1.5rem;">A curva de crescimento acumulado revela o padrão sigmoidal característico da maioria das espécies arbóreas — crescimento lento no início, aceleração e, finalmente, assíntota.</p>
+
+  <div class="tabs" id="chartTabs">
+    <button class="tab-btn active" data-tab="tab-acumulado">Crescimento Acumulado</button>
+    <button class="tab-btn" data-tab="tab-altura">Curva de Altura</button>
+    <button class="tab-btn" data-tab="tab-area">Área Basal</button>
+    <button class="tab-btn" data-tab="tab-dispersao">Diâmetro × Altura</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-acumulado">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Crescimento Acumulado em Diâmetro</span>
+        <span class="chart-sub">Curva sigmoidal · Dados observados</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chartAcumulado"></canvas></div>
+    </div>
+    <div class="callout">
+      A curva de crescimento acumulado mostra o valor absoluto da variável em cada momento. Seu formato em "S" (sigmoidal) é típico: o crescimento começa lento, acelera e depois se estabiliza à medida que a árvore amadurece. A <strong>inclinação da tangente</strong> em qualquer ponto da curva representa o crescimento corrente naquele instante.
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-altura">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Crescimento em Altura ao Longo do Tempo</span>
+        <span class="chart-sub">Valores observados · Tendência</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chartAltura"></canvas></div>
+    </div>
+    <div class="callout">
+      A curva de altura tende a ser mais linear no início e a desacelerar mais cedo que o diâmetro em muitas espécies. Relações altura-diâmetro (<strong>equações hipsométricas</strong>) são derivadas justamente dessa associação entre as duas variáveis.
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-area">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Área Basal Individual ao Longo do Tempo</span>
+        <span class="chart-sub">g = π·d²/4 · (em cm²)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chartArea"></canvas></div>
+    </div>
+    <div class="callout">
+      A área basal cresce de forma quadrática em relação ao diâmetro, o que explica o crescimento exponencial observado na curva. Um incremento de 5 cm no DAP tem impacto muito maior na área basal de uma árvore grande do que na de uma árvore pequena.
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-dispersao">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Relação Diâmetro × Altura</span>
+        <span class="chart-sub">Base para equações hipsométricas</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chartDispersao"></canvas></div>
+    </div>
+    <div class="callout">
+      A relação entre diâmetro e altura é o fundamento das <strong>equações hipsométricas</strong>. Como medir altura é mais trabalhoso que medir diâmetro, essas equações permitem estimar h a partir de d para toda uma população de árvores. Os modelos mais comuns são de Curtis, Henri e Campos-Leite.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SEÇÃO 5: TAXAS -->
+<section id="taxas" class="scroll-fade">
+  <div class="section-label">05 — Taxas de Crescimento</div>
+  <h2>Incremento Corrente Anual<br>e <em>Incremento Médio Anual</em></h2>
+
+  <div class="two-col" style="margin-bottom:2rem;">
+    <div>
+      <h3>ICA — Incremento Corrente Anual</h3>
+      <p>O ICA mede o crescimento ocorrido em um intervalo de tempo específico. É a derivada discreta da curva de crescimento acumulado.</p>
+      <div class="formula">
+        <span class="f-label">Fórmula</span>
+        ICA(t) = Y(t) − Y(t−1)
+        <span class="f-note">
+          Y(t) = valor da variável no tempo t<br>
+          Unidade: mesma da variável medida / período
+        </span>
+      </div>
+      <p>O ICA é máximo no ponto de inflexão da curva sigmoidal e decresce à medida que a árvore amadurece. Ele indica <strong>em que fase do ciclo</strong> o crescimento se encontra.</p>
+    </div>
+    <div>
+      <h3>IMA — Incremento Médio Anual</h3>
+      <p>O IMA divide o crescimento acumulado total pelo número de anos. É a medida de produtividade média da árvore ao longo de toda sua vida.</p>
+      <div class="formula">
+        <span class="f-label">Fórmula</span>
+        IMA(t) = Y(t) / t
+        <span class="f-note">
+          Y(t) = valor acumulado no tempo t<br>
+          t = idade em anos
+        </span>
+      </div>
+      <p>O IMA é crescente enquanto o ICA &gt; IMA, e começa a declinar quando o ICA &lt; IMA. O cruzamento das curvas marca o <strong>ponto de máximo IMA</strong> — ponto técnico de rotação.</p>
+    </div>
+  </div>
+
+  <!-- GRÁFICO ICA E IMA -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <span class="chart-title">ICA e IMA — Diâmetro</span>
+      <span class="chart-sub">Curvas de incremento corrente e médio</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chartICA"></canvas></div>
+  </div>
+
+  <div class="callout" style="margin-top:1.5rem;">
+    <strong>Ponto de interseção ICA × IMA:</strong> Quando a curva de ICA cruza e passa abaixo da curva de IMA, o incremento médio começa a declinar. Este ponto marca a <em>rotação técnica</em> — o momento em que o crescimento médio é máximo e, do ponto de vista puramente biológico, seria o momento ideal para o corte.
+  </div>
+
+  <!-- TABELA DETALHADA -->
+  <h3 style="margin-top:2.5rem; margin-bottom:1rem;">Tabela Completa de Incrementos</h3>
+  <div class="table-wrap">
+    <table id="incrementTable">
+      <thead>
+        <tr>
+          <th>Idade</th>
+          <th>Diâm. (cm)</th>
+          <th>Alt. (m)</th>
+          <th>ICA Diâm.</th>
+          <th>ICA Alt.</th>
+          <th>IMA Diâm.</th>
+          <th>IMA Alt.</th>
+          <th>Fase</th>
+        </tr>
+      </thead>
+      <tbody id="incrementBody"></tbody>
+    </table>
+  </div>
+
+  <!-- GRÁFICO ICA ALTURA -->
+  <div class="chart-card" style="margin-top:1.5rem;">
+    <div class="chart-header">
+      <span class="chart-title">ICA e IMA — Altura</span>
+      <span class="chart-sub">Incrementos em altura ao longo do tempo</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chartICAalt"></canvas></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SEÇÃO 6: CALCULADORA -->
+<section id="calculadora" class="scroll-fade">
+  <div class="section-label">06 — Ferramenta Interativa</div>
+  <h2>Calculadora de <em>Crescimento</em></h2>
+
+  <p class="lead" style="max-width:640px; margin-bottom:1.5rem;">Insira os dados de duas medições da mesma árvore em momentos diferentes para calcular o ICA, IMA, e derivar outras métricas dendrométricas.</p>
+
+  <div class="calc-box">
+    <h3 style="font-family:var(--sans); font-size:1rem; color:var(--text3); font-weight:500; margin-bottom:1.5rem; text-transform: uppercase; letter-spacing:0.1em; font-family:var(--mono); font-size:11px;">Medição 1 — Referência (t₁)</h3>
+    <div class="calc-grid">
+      <div class="calc-field">
+        <label>Idade t₁ (anos)</label>
+        <input type="number" id="t1" value="1" min="0" step="1">
+      </div>
+      <div class="calc-field">
+        <label>Diâmetro d₁ (cm)</label>
+        <input type="number" id="d1" value="5" min="0" step="0.1">
+      </div>
+      <div class="calc-field">
+        <label>Altura h₁ (m)</label>
+        <input type="number" id="h1" value="5" min="0" step="0.1">
+      </div>
+    </div>
+
+    <h3 style="font-family:var(--mono); font-size:11px; color:var(--text3); font-weight:500; margin-bottom:1.5rem; text-transform: uppercase; letter-spacing:0.1em;">Medição 2 — Atual (t₂)</h3>
+    <div class="calc-grid">
+      <div class="calc-field">
+        <label>Idade t₂ (anos)</label>
+        <input type="number" id="t2" value="5" min="0" step="1">
+      </div>
+      <div class="calc-field">
+        <label>Diâmetro d₂ (cm)</label>
+        <input type="number" id="d2" value="25" min="0" step="0.1">
+      </div>
+      <div class="calc-field">
+        <label>Altura h₂ (m)</label>
+        <input type="number" id="h2" value="30" min="0" step="0.1">
+      </div>
+    </div>
+
+    <button class="btn-calc" onclick="calcular()">▶ Calcular</button>
+
+    <div class="calc-results" id="calcResults">
+      <div class="result-item">
+        <div class="result-label">ICA Diâmetro</div>
+        <div class="result-value" id="r_ica_d">—</div>
+        <div class="result-unit">cm / ano</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">ICA Altura</div>
+        <div class="result-value" id="r_ica_h">—</div>
+        <div class="result-unit">m / ano</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">IMA Diâmetro (em t₂)</div>
+        <div class="result-value" id="r_ima_d">—</div>
+        <div class="result-unit">cm / ano</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">IMA Altura (em t₂)</div>
+        <div class="result-value" id="r_ima_h">—</div>
+        <div class="result-unit">m / ano</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Área Basal (t₂)</div>
+        <div class="result-value" id="r_g2">—</div>
+        <div class="result-unit">cm²</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">ICA Área Basal</div>
+        <div class="result-value" id="r_ica_g">—</div>
+        <div class="result-unit">cm² / ano</div>
+      </div>
+    </div>
+
+    <div id="interpretacao" style="margin-top:1.5rem; display:none;">
+      <div class="section-label" style="margin-bottom:0.5rem;">Interpretação</div>
+      <p id="interp-text" style="font-size:0.9rem;"></p>
+      <div id="interp-badge"></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SEÇÃO 7: CURVA S -->
+<section id="modelo" class="scroll-fade">
+  <div class="section-label">07 — Modelagem</div>
+  <h2>A curva <em>sigmoidal</em> e os modelos de crescimento</h2>
+
+  <div class="two-col">
+    <div>
+      <p>O padrão sigmoidal do crescimento acumulado é explicado pela equação de Richards (ou Chapman-Richards), amplamente usada em dendrometria. Ela descreve o crescimento em função de três parâmetros biológicos:</p>
+      <div class="formula">
+        <span class="f-label">Modelo de Richards</span>
+        Y(t) = A · (1 − e<sup>−k·t</sup>)<sup>m</sup>
+        <span class="f-note">
+          A = assíntota (tamanho máximo)<br>
+          k = taxa de crescimento (ano⁻¹)<br>
+          m = parâmetro de forma
+        </span>
+      </div>
+      <p>Outros modelos frequentemente usados incluem o <strong>Gompertz</strong>, o <strong>Logístico</strong> e o <strong>Weibull</strong>. A escolha depende do comportamento da espécie e da qualidade do ajuste estatístico.</p>
+    </div>
+    <div>
+      <div class="grid-2" style="gap:1rem;">
+        <div style="text-align:center; padding:1.5rem; background:var(--card); border:1px solid var(--border);">
+          <div class="number-big" id="maxICA_d">—</div>
+          <div class="number-label">Máx. ICA Diâm.</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text3);margin-top:0.2rem;">cm / ano</div>
+        </div>
+        <div style="text-align:center; padding:1.5rem; background:var(--card); border:1px solid var(--border);">
+          <div class="number-big" id="maxIMA_d">—</div>
+          <div class="number-label">Máx. IMA Diâm.</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text3);margin-top:0.2rem;">cm / ano</div>
+        </div>
+        <div style="text-align:center; padding:1.5rem; background:var(--card); border:1px solid var(--border);">
+          <div class="number-big" id="maxICA_h">—</div>
+          <div class="number-label">Máx. ICA Altura</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text3);margin-top:0.2rem;">m / ano</div>
+        </div>
+        <div style="text-align:center; padding:1.5rem; background:var(--card); border:1px solid var(--border);">
+          <div class="number-big" id="maxIMA_h">—</div>
+          <div class="number-label">Máx. IMA Altura</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text3);margin-top:0.2rem;">m / ano</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:0.5rem; color:var(--accent3); letter-spacing:0.2em;">⬡ DENDROMETRIA &amp; INVENTÁRIO</div>
+  Crescimento da Árvore Individual · Material Didático Interativo
+</footer>
+
+<script>
+// ============================================================
+// DADOS BASE (da imagem)
+// ============================================================
+// Diâmetros ajustados para curva sigmoidal consistente:
+// ICA cresce (anos 1–4), atinge pico no ano 4 (ΔD = 7 cm),
+// depois declina. Cruzamento ICA × IMA ocorre entre anos 5 e 6.
+// ICA: 2, 3, 5, 7, 7→5→3→2  |  Acumulado: 2,5,10,17,24,29,32,34
+const dados = [
+  { idade: 1, diam: 2,  alt: 3  },
+  { idade: 2, diam: 5,  alt: 8  },
+  { idade: 3, diam: 10, alt: 15 },
+  { idade: 4, diam: 17, alt: 22 },
+  { idade: 5, diam: 24, alt: 28 },
+  { idade: 6, diam: 29, alt: 33 },
+  { idade: 7, diam: 32, alt: 36 },
+  { idade: 8, diam: 34, alt: 37 },
+];
+
+// Área basal individual em cm²
+dados.forEach(d => {
+  d.g = Math.PI * d.diam * d.diam / 4;
+});
+
+// ICA e IMA
+dados.forEach((d, i) => {
+  if (i === 0) {
+    d.ica_d = d.diam;
+    d.ica_h = d.alt;
+    d.ica_g = d.g;
+  } else {
+    d.ica_d = d.diam - dados[i-1].diam;
+    d.ica_h = d.alt  - dados[i-1].alt;
+    d.ica_g = d.g    - dados[i-1].g;
+  }
+  d.ima_d = d.diam / d.idade;
+  d.ima_h = d.alt  / d.idade;
+  d.ima_g = d.g    / d.idade;
+});
+
+const idades = dados.map(d => d.idade);
+const diams  = dados.map(d => d.diam);
+const alts   = dados.map(d => d.alt);
+const gs     = dados.map(d => +d.g.toFixed(1));
+const ica_d  = dados.map(d => +d.ica_d.toFixed(2));
+const ica_h  = dados.map(d => +d.ica_h.toFixed(2));
+const ima_d  = dados.map(d => +d.ima_d.toFixed(2));
+const ima_h  = dados.map(d => +d.ima_h.toFixed(2));
+
+// ============================================================
+// CHART.JS CONFIG BASE
+// ============================================================
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      labels: {
+        color: '#a8c070',
+        font: { family: 'DM Mono', size: 11 },
+        boxWidth: 12,
+      }
+    },
+    tooltip: {
+      backgroundColor: '#1c2613',
+      borderColor: '#2e3d1c',
+      borderWidth: 1,
+      titleColor: '#8fbf3a',
+      bodyColor: '#a8c070',
+      titleFont: { family: 'DM Mono', size: 11 },
+      bodyFont: { family: 'DM Mono', size: 11 },
+    }
+  },
+  scales: {
+    x: {
+      grid: { color: 'rgba(46,61,28,0.5)', drawBorder: false },
+      ticks: { color: '#6a8840', font: { family: 'DM Mono', size: 10 } },
+      title: { display: true, color: '#6a8840', font: { family: 'DM Mono', size: 10 }, text: 'Idade (anos)' }
+    },
+    y: {
+      grid: { color: 'rgba(46,61,28,0.5)', drawBorder: false },
+      ticks: { color: '#6a8840', font: { family: 'DM Mono', size: 10 } },
+    }
+  }
+};
+
+function makeCtx(id) {
+  return document.getElementById(id).getContext('2d');
+}
+
+// CHART 1: Acumulado Diâmetro
+new Chart(makeCtx('chartAcumulado'), {
+  type: 'line',
+  data: {
+    labels: idades,
+    datasets: [{
+      label: 'Diâmetro acumulado (cm)',
+      data: diams,
+      borderColor: '#8fbf3a',
+      backgroundColor: 'rgba(143,191,58,0.08)',
+      pointBackgroundColor: '#8fbf3a',
+      pointRadius: 5,
+      tension: 0.4,
+      fill: true,
+    }]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+    y: { ...chartDefaults.scales.y, title: { display:true, text:'Diâmetro (cm)', color:'#6a8840', font:{family:'DM Mono',size:10} } }
+  }}
+});
+
+// CHART 2: Altura
+new Chart(makeCtx('chartAltura'), {
+  type: 'line',
+  data: {
+    labels: idades,
+    datasets: [{
+      label: 'Altura total (m)',
+      data: alts,
+      borderColor: '#c8e86a',
+      backgroundColor: 'rgba(200,232,106,0.07)',
+      pointBackgroundColor: '#c8e86a',
+      pointRadius: 5,
+      tension: 0.4,
+      fill: true,
+    }]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+    y: { ...chartDefaults.scales.y, title: { display:true, text:'Altura (m)', color:'#6a8840', font:{family:'DM Mono',size:10} } }
+  }}
+});
+
+// CHART 3: Área Basal
+new Chart(makeCtx('chartArea'), {
+  type: 'bar',
+  data: {
+    labels: idades,
+    datasets: [{
+      label: 'Área basal (cm²)',
+      data: gs,
+      backgroundColor: 'rgba(90,138,26,0.6)',
+      borderColor: '#5a8a1a',
+      borderWidth: 1,
+    }]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+    y: { ...chartDefaults.scales.y, title: { display:true, text:'Área Basal (cm²)', color:'#6a8840', font:{family:'DM Mono',size:10} } }
+  }}
+});
+
+// CHART 4: Dispersão D x H
+new Chart(makeCtx('chartDispersao'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: 'Diâmetro × Altura',
+      data: dados.map(d => ({x: d.diam, y: d.alt})),
+      backgroundColor: '#8fbf3a',
+      pointRadius: 7,
+      pointHoverRadius: 9,
+    }]
+  },
+  options: { ...chartDefaults, scales: {
+    x: { ...chartDefaults.scales.x, title: { display:true, text:'Diâmetro (cm)', color:'#6a8840', font:{family:'DM Mono',size:10} } },
+    y: { ...chartDefaults.scales.y, title: { display:true, text:'Altura (m)', color:'#6a8840', font:{family:'DM Mono',size:10} } }
+  }}
+});
+
+// CHART 5: ICA e IMA Diâmetro
+new Chart(makeCtx('chartICA'), {
+  type: 'line',
+  data: {
+    labels: idades,
+    datasets: [
+      {
+        label: 'ICA Diâmetro (cm/ano)',
+        data: ica_d,
+        borderColor: '#8fbf3a',
+        backgroundColor: 'rgba(143,191,58,0.07)',
+        pointBackgroundColor: '#8fbf3a',
+        pointRadius: 5,
+        tension: 0.3,
+        fill: true,
+      },
+      {
+        label: 'IMA Diâmetro (cm/ano)',
+        data: ima_d,
+        borderColor: '#e8b84a',
+        borderDash: [6,3],
+        backgroundColor: 'transparent',
+        pointBackgroundColor: '#e8b84a',
+        pointRadius: 4,
+        tension: 0.3,
+      }
+    ]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+    y: { ...chartDefaults.scales.y, title: { display:true, text:'Incremento (cm/ano)', color:'#6a8840', font:{family:'DM Mono',size:10} } }
+  }}
+});
+
+// CHART 6: ICA e IMA Altura
+new Chart(makeCtx('chartICAalt'), {
+  type: 'line',
+  data: {
+    labels: idades,
+    datasets: [
+      {
+        label: 'ICA Altura (m/ano)',
+        data: ica_h,
+        borderColor: '#c8e86a',
+        backgroundColor: 'rgba(200,232,106,0.07)',
+        pointBackgroundColor: '#c8e86a',
+        pointRadius: 5,
+        tension: 0.3,
+        fill: true,
+      },
+      {
+        label: 'IMA Altura (m/ano)',
+        data: ima_h,
+        borderColor: '#c0622a',
+        borderDash: [6,3],
+        backgroundColor: 'transparent',
+        pointBackgroundColor: '#c0622a',
+        pointRadius: 4,
+        tension: 0.3,
+      }
+    ]
+  },
+  options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+    y: { ...chartDefaults.scales.y, title: { display:true, text:'Incremento (m/ano)', color:'#6a8840', font:{family:'DM Mono',size:10} } }
+  }}
+});
+
+// ============================================================
+// TABELA PRINCIPAL
+// ============================================================
+const tableBody = document.getElementById('tableBody');
+dados.forEach(d => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${d.idade}</td>
+    <td class="td-highlight">${d.diam.toFixed(1)}</td>
+    <td>${d.alt.toFixed(1)}</td>
+    <td class="td-amber">${d.g.toFixed(1)}</td>
+  `;
+  tableBody.appendChild(tr);
+});
+
+// ============================================================
+// TABELA INCREMENTOS
+// ============================================================
+// ICA: 2,3,5,7,7,5,3,2 → ICA>IMA até ano 5, cruza no ano 6
+const fases = ['','Acelerado','Acelerado','Acelerado','Acelerado','Acelerado','Moderado','Desacelerado','Desacelerado'];
+const faseColors = {'Acelerado':'td-highlight','Moderado':'td-amber','Desacelerado':'td-rust'};
+
+const incrementBody = document.getElementById('incrementBody');
+dados.forEach((d, i) => {
+  const fase = fases[i+1] || 'Desacelerado';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${d.idade}</td>
+    <td class="td-highlight">${d.diam}</td>
+    <td>${d.alt}</td>
+    <td class="td-highlight">${d.ica_d.toFixed(1)}</td>
+    <td>${d.ica_h.toFixed(1)}</td>
+    <td class="td-amber">${d.ima_d.toFixed(2)}</td>
+    <td>${d.ima_h.toFixed(2)}</td>
+    <td class="${faseColors[fase] || ''}">${fase}</td>
+  `;
+  incrementBody.appendChild(tr);
+});
+
+// ============================================================
+// STATS DE RESUMO
+// ============================================================
+document.getElementById('maxICA_d').textContent = Math.max(...ica_d).toFixed(1);
+document.getElementById('maxIMA_d').textContent = Math.max(...ima_d).toFixed(2);
+document.getElementById('maxICA_h').textContent = Math.max(...ica_h).toFixed(1);
+document.getElementById('maxIMA_h').textContent = Math.max(...ima_h).toFixed(2);
+
+// ============================================================
+// TABS
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ============================================================
+// CALCULADORA
+// ============================================================
+function calcular() {
+  const t1 = +document.getElementById('t1').value;
+  const t2 = +document.getElementById('t2').value;
+  const d1 = +document.getElementById('d1').value;
+  const d2 = +document.getElementById('d2').value;
+  const h1 = +document.getElementById('h1').value;
+  const h2 = +document.getElementById('h2').value;
+
+  if (t2 <= t1 || t2 <= 0 || d2 <= 0) {
+    alert('Verifique os valores inseridos: t₂ > t₁ e todos positivos.');
+    return;
+  }
+
+  const dt = t2 - t1;
+  const ica_d = ((d2 - d1) / dt).toFixed(2);
+  const ica_h = ((h2 - h1) / dt).toFixed(2);
+  const ima_d2 = (d2 / t2).toFixed(2);
+  const ima_h2 = (h2 / t2).toFixed(2);
+  const g1 = Math.PI * d1 * d1 / 4;
+  const g2 = Math.PI * d2 * d2 / 4;
+  const ica_g = ((g2 - g1) / dt).toFixed(1);
+
+  document.getElementById('r_ica_d').textContent = ica_d;
+  document.getElementById('r_ica_h').textContent = ica_h;
+  document.getElementById('r_ima_d').textContent = ima_d2;
+  document.getElementById('r_ima_h').textContent = ima_h2;
+  document.getElementById('r_g2').textContent = g2.toFixed(1);
+  document.getElementById('r_ica_g').textContent = ica_g;
+
+  // Interpretação
+  const interp = document.getElementById('interpretacao');
+  const interp_text = document.getElementById('interp-text');
+  const interp_badge = document.getElementById('interp-badge');
+  interp.style.display = 'block';
+
+  let fase, badgeClass, texto;
+  const icaNum = parseFloat(ica_d);
+  const imaNum = parseFloat(ima_d2);
+
+  if (icaNum > imaNum) {
+    fase = 'Fase de Crescimento Acelerado';
+    badgeClass = 'interp-fast';
+    texto = `O ICA (${ica_d} cm/ano) é superior ao IMA (${ima_d2} cm/ano), indicando que a árvore está em fase de crescimento acelerado. O incremento atual supera a média histórica — o crescimento está ganhando ritmo.`;
+  } else if (icaNum > imaNum * 0.7) {
+    fase = 'Fase de Crescimento Moderado';
+    badgeClass = 'interp-slow';
+    texto = `O ICA (${ica_d} cm/ano) está próximo mas abaixo do IMA (${ima_d2} cm/ano). A árvore se aproxima do ponto de máximo IMA, com crescimento corrente ainda expressivo.`;
+  } else {
+    fase = 'Fase de Crescimento Desacelerado';
+    badgeClass = 'interp-mature';
+    texto = `O ICA (${ica_d} cm/ano) é significativamente inferior ao IMA (${ima_d2} cm/ano). A taxa de crescimento atual é menor que a média histórica — a árvore está na fase de maturação.`;
+  }
+
+  interp_text.textContent = texto;
+  interp_badge.innerHTML = `<span class="interp-badge ${badgeClass}">▸ ${fase}</span>`;
+}
+
+// ============================================================
+// SCROLL FADE
+// ============================================================
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
