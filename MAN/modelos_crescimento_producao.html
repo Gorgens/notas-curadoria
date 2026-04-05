@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de Crescimento e Produção Florestal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Configuração Robusta do MathJax 3 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                enableMenu: false
+            },
+            startup: {
+                typeset: true
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es6/tex-mml-chtml.js"></script>
+
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .active-tab { border-bottom: 4px solid #10b981; color: #10b981; }
+        
+        /* Estilização para evitar que fórmulas "cruas" apareçam antes do processamento */
+        .math-content { visibility: hidden; }
+        .math-rendered .math-content { visibility: visible; }
+        
+        mjx-container { margin: 1rem 0 !important; outline: none; }
+        .concept-card { transition: all 0.3s ease; }
+        .concept-card:hover { border-color: #10b981; background-color: #f0fdf4; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <header class="bg-emerald-900 text-white p-12 shadow-2xl">
+        <div class="container mx-auto">
+            <h1 class="text-4xl font-extrabold tracking-tight">Estudos Avançados de Crescimento e Produção</h1>
+            <p class="mt-4 text-emerald-100 text-lg max-w-4xl leading-relaxed">
+                Fundamentos biométricos para a predição do rendimento florestal e suporte à tomada de decisão no manejo sustentável.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto my-10 p-4">
+        <!-- Navegação -->
+        <nav class="flex border-b border-slate-200 mb-10 overflow-x-auto bg-white rounded-t-xl shadow-sm">
+            <button onclick="showTab('conceitos')" id="tab-conceitos" class="px-8 py-5 font-bold active-tab transition-all whitespace-nowrap">Base Teórica</button>
+            <button onclick="showTab('incrementos')" id="tab-incrementos" class="px-8 py-5 font-bold transition-all whitespace-nowrap">Taxas de Crescimento</button>
+            <button onclick="showTab('tipologias')" id="tab-tipologias" class="px-8 py-5 font-bold transition-all whitespace-nowrap">Hierarquia de Modelos</button>
+            <button onclick="showTab('modelagem')" id="tab-modelagem" class="px-8 py-5 font-bold transition-all whitespace-nowrap">Simulador de Schumacher</button>
+        </nav>
+
+        <!-- Aba: Base Teórica -->
+        <section id="conceitos" class="tab-content active bg-white p-10 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-8 text-emerald-900 border-b pb-4">Crescimento vs. Produção</h2>
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="space-y-6 text-justify">
+                    <p>
+                        A compreensão da dinâmica florestal exige a distinção clara entre dois conceitos: o <strong>Crescimento</strong> é uma variável de fluxo, representando a taxa de variação das dimensões (volume, biomassa, altura) em relação ao tempo. Já a <strong>Produção</strong> é uma variável de estoque, acumulando o resultado desse crescimento ao longo de todo o ciclo de vida do povoamento.
+                    </p>
+                    <p>
+                        Do ponto de vista biológico, o crescimento segue um padrão sigmoide (em forma de S), caracterizado por uma fase inicial de aceleração, um ponto de inflexão onde a taxa é máxima, e uma fase de senescência ou estabilização. Matematicamente, a produção $P$ no tempo $t$ é a integral da função de crescimento $c(t)$:
+                    </p>
+                    <div class="p-6 bg-emerald-50 rounded-xl border-l-8 border-emerald-500 shadow-inner">
+                        <p class="text-center text-2xl font-serif">
+                            $$P(t) = \int_{0}^{t} c(x) \, dx$$
+                        </p>
+                        <p class="text-xs text-center mt-2 text-emerald-700 italic">Onde $c(x)$ representa o incremento instantâneo.</p>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <h3 class="font-bold text-xl text-emerald-800">Fatores Condicionantes</h3>
+                    <p class="text-sm">A trajetória dessas curvas é moldada pela interação de três grandes grupos de variáveis:</p>
+                    <ul class="space-y-4">
+                        <li class="p-4 bg-slate-50 rounded-lg border border-slate-200 concept-card">
+                            <strong class="text-emerald-700">Capacidade de Sítio:</strong> Reflete o potencial produtivo do ambiente (solo, clima e relevo). É a variável que define a altura da assíntota do modelo.
+                        </li>
+                        <li class="p-4 bg-slate-50 rounded-lg border border-slate-200 concept-card">
+                            <strong class="text-emerald-700">Tratamentos Silviculturais:</strong> Intervenções como adubação e controle de plantas daninhas que buscam aproximar a produção real do potencial genético.
+                        </li>
+                        <li class="p-4 bg-slate-50 rounded-lg border border-slate-200 concept-card">
+                            <strong class="text-emerald-700">Densidade de Povoamento:</strong> Regula a competição intraespecífica. O manejo da densidade via desbastes altera a distribuição do crescimento entre os indivíduos remanescentes.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aba: Incrementos -->
+        <section id="incrementos" class="tab-content bg-white p-10 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-8 text-emerald-900 border-b pb-4">Análise de ICA e IMA</h2>
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="space-y-6">
+                    <p>
+                        A análise das taxas de incremento é a principal ferramenta para determinar a <strong>Idade Técnica de Corte (ITC)</strong>. Esta decisão equilibra o crescimento biológico com a viabilidade econômica do empreendimento florestal.
+                    </p>
+                    <div class="grid gap-6">
+                        <div class="p-5 bg-slate-50 rounded-xl border-l-4 border-emerald-500">
+                            <h4 class="font-bold text-emerald-800 mb-2">Incremento Corrente Anual (ICA)</h4>
+                            <p class="text-sm italic mb-2">Representa o ganho de volume ocorrido no último período de crescimento.</p>
+                            <p class="text-lg">$$ICA = V_{t} - V_{t-1}$$</p>
+                        </div>
+                        <div class="p-5 bg-slate-50 rounded-xl border-l-4 border-blue-500">
+                            <h4 class="font-bold text-blue-800 mb-2">Incremento Médio Anual (IMA)</h4>
+                            <p class="text-sm italic mb-2">Representa a produtividade média anual desde o estabelecimento do plantio.</p>
+                            <p class="text-lg">$$IMA = \frac{V_{t}}{t}$$</p>
+                        </div>
+                    </div>
+                    <p class="bg-amber-50 p-6 rounded-lg border-l-4 border-amber-400 text-sm italic">
+                        <strong>Lei Biológica:</strong> Quando o ICA se iguala ao IMA ($ICA = IMA$), a floresta atinge sua eficiência máxima de produção média. Após este ponto, embora a floresta continue crescendo, sua "velocidade média" começa a cair, indicando a maturação para o corte raso.
+                    </p>
+                </div>
+                <div class="h-[450px] bg-slate-50 p-4 rounded-xl shadow-inner">
+                    <canvas id="chartIncremento"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aba: Tipologias -->
+        <section id="tipologias" class="tab-content bg-white p-10 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-8 text-emerald-900 border-b pb-4">Tipologias de Modelagem Matemáticas</h2>
+            <div class="space-y-8">
+                <p class="text-lg leading-relaxed">
+                    A modelagem florestal evolui conforme novas variáveis são integradas para explicar a variância da produção. Podemos classificar os modelos em três níveis de complexidade:
+                </p>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="p-8 bg-blue-50 rounded-2xl border border-blue-100 flex flex-col">
+                        <h3 class="font-bold text-blue-900 text-xl mb-4">Nível 1: Modelos Globais</h3>
+                        <p class="text-sm leading-relaxed mb-6">Assumem que a idade é o único preditor relevante: $V = f(I)$. São modelos "médios" para uma região.</p>
+                        <div class="mt-auto pt-4 border-t border-blue-200 text-xs font-semibold text-blue-700">
+                            Limitado: Não diferencia terrenos bons de ruins.
+                        </div>
+                    </div>
+                    <div class="p-8 bg-emerald-50 rounded-2xl border border-emerald-100 flex flex-col">
+                        <h3 class="font-bold text-emerald-900 text-xl mb-4">Nível 2: Modelos de Sítio</h3>
+                        <p class="text-sm leading-relaxed mb-6">Integram a qualidade do local ($S$): $V = f(I, S)$. Utilizam a altura dominante como proxy da fertilidade.</p>
+                        <div class="mt-auto pt-4 border-t border-emerald-200 text-xs font-semibold text-emerald-700">
+                            Estratégico: Permite o planejamento espacial da colheita.
+                        </div>
+                    </div>
+                    <div class="p-8 bg-amber-50 rounded-2xl border border-amber-100 flex flex-col">
+                        <h3 class="font-bold text-amber-900 text-xl mb-4">Nível 3: Modelos de Densidade</h3>
+                        <p class="text-sm leading-relaxed mb-6">Incluem competição ($G$, $N$): $V = f(I, S, G, N)$. Simulam como a floresta reage à redução do número de árvores.</p>
+                        <div class="mt-auto pt-4 border-t border-amber-200 text-xs font-semibold text-amber-700">
+                            Operacional: Essencial para definir regimes de desbaste.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aba: Simulador -->
+        <section id="modelagem" class="tab-content bg-white p-10 rounded-xl shadow-lg">
+            <h2 class="text-3xl font-bold mb-8 text-emerald-900 border-b pb-4">Simulador do Modelo de Schumacher</h2>
+            <div class="grid md:grid-cols-3 gap-12">
+                <div class="bg-slate-50 p-8 rounded-2xl space-y-10 shadow-inner">
+                    <div class="p-6 bg-white rounded-xl shadow-md text-center border-t-4 border-emerald-600">
+                        <div class="text-xs uppercase tracking-widest text-slate-400 font-black mb-3">Modelo Linearizado</div>
+                        <div id="math-box" class="text-2xl py-2">
+                            $$\ln(V) = \beta_0 + \beta_1 \cdot \left(\frac{1}{I}\right)$$
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <label class="block font-bold text-emerald-900 text-sm uppercase">Parâmetro de Sítio ($\beta_0$)</label>
+                        <input type="range" id="paramBeta0" min="4" max="7.5" step="0.05" value="6.0" class="w-full accent-emerald-600 cursor-pointer">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-400"><span>Pobre (4.0)</span><span>Rico (7.5)</span></div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label class="block font-bold text-emerald-900 text-sm uppercase">Taxa de Crescimento ($\beta_1$)</label>
+                        <input type="range" id="paramBeta1" min="-20" max="-5" step="0.2" value="-12" class="w-full accent-blue-600 cursor-pointer">
+                        <div class="flex justify-between text-[10px] font-mono text-slate-400"><span>Lento (-20)</span><span>Acelerado (-5)</span></div>
+                    </div>
+
+                    <div class="p-5 bg-emerald-900 text-emerald-50 rounded-xl text-xs leading-relaxed shadow-lg">
+                        <strong>Interpretação Biométrica:</strong> 
+                        O $\beta_0$ representa o logaritmo da assíntota (volume máximo teórico). O $\beta_1$ é o parâmetro de inclinação; quanto mais próximo de zero, mais cedo a floresta atinge o ponto de inflexão e estabiliza sua produção.
+                    </div>
+                </div>
+                <div class="md:col-span-2 h-[550px] bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm relative">
+                    <div class="absolute top-4 right-6 bg-white px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 border shadow-sm">Eixo Y Fixo: 1500 m³/ha</div>
+                    <canvas id="chartSchumacher"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container mx-auto p-12 text-center text-slate-400 border-t border-slate-200 mt-10">
+        <p class="font-bold">Laboratório Virtual de Biometria Florestal</p>
+        <p class="mt-2 text-xs">Fórmulas renderizadas com MathJax 3.2.2 • Gráficos dinâmicos via Chart.js 4.0</p>
+    </footer>
+
+    <script>
+        // Função crucial para forçar o MathJax a re-renderizar o conteúdo visível
+        function refreshMath() {
+            if (window.MathJax && MathJax.typeset) {
+                MathJax.typeset();
+            }
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-tab'));
+            
+            const selectedTab = document.getElementById(tabId);
+            selectedTab.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active-tab');
+
+            if(tabId === 'incrementos') renderIncrementoChart();
+            if(tabId === 'modelagem') updateModelChart();
+
+            // Sincroniza a renderização matemática com a visibilidade da aba
+            setTimeout(refreshMath, 50);
+        }
+
+        function renderIncrementoChart() {
+            const canvas = document.getElementById('chartIncremento');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if(window.incChart) window.incChart.destroy();
+            
+            const labels = Array.from({length: 16}, (_, i) => i + 1);
+            // Simulação de curvas ICA e IMA típicas
+            const ica = [2, 12, 35, 52, 60, 58, 48, 38, 28, 20, 15, 11, 8, 6, 4, 3];
+            const ima = labels.map((_, i) => ica.slice(0, i+1).reduce((a,b)=>a+b, 0) / (i+1));
+
+            window.incChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'ICA (Incremento Corrente)', data: ica, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.4, borderWidth: 4, pointRadius: 3 },
+                        { label: 'IMA (Incremento Médio)', data: ima, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.4, borderWidth: 4, pointRadius: 3 }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { position: 'top', labels: { boxWidth: 15, font: { weight: 'bold' } } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { title: { display: true, text: 'Incremento (m³/ha/ano)', font: { weight: 'bold' } } },
+                        x: { title: { display: true, text: 'Idade (anos)', font: { weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+
+        function updateModelChart() {
+            const canvas = document.getElementById('chartSchumacher');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const b0 = parseFloat(document.getElementById('paramBeta0').value);
+            const b1 = parseFloat(document.getElementById('paramBeta1').value);
+            
+            const labels = Array.from({length: 30}, (_, i) => i + 1);
+            const volumes = labels.map(age => Math.exp(b0 + b1 * (1/age)));
+            
+            if(window.schuChart) window.schuChart.destroy();
+            window.schuChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Volume Projetado',
+                        data: volumes,
+                        borderColor: '#065f46',
+                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        borderWidth: 6
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            min: 0,
+                            max: 1500, // Eixo fixo conforme solicitado
+                            title: { display: true, text: 'Produção Acumulada (m³/ha)', font: { size: 14, weight: 'bold' } }
+                        },
+                        x: { title: { display: true, text: 'Idade do Povoamento (anos)', font: { size: 14, weight: 'bold' } } }
+                    },
+                    animation: { duration: 300 },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        document.getElementById('paramBeta0').addEventListener('input', updateModelChart);
+        document.getElementById('paramBeta1').addEventListener('input', updateModelChart);
+
+        window.onload = () => {
+            updateModelChart();
+            setTimeout(refreshMath, 500); // Força renderização após carregamento inicial
+        };
+    </script>
+</body>
+</html>

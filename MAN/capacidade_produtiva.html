@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudo de Capacidade Produtiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuração para habilitar o uso de $ para fórmulas inline -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .formula-card {
+            background: #f8fafc;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .interactive-section {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        /* Ajuste para evitar que o MathJax cause scroll horizontal */
+        .mjx-container {
+            overflow-x: auto;
+            overflow-y: hidden;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Header -->
+    <header class="bg-emerald-700 text-white py-10 px-6 text-center shadow-lg">
+        <h1 class="text-4xl font-bold mb-2">Capacidade Produtiva Florestal</h1>
+        <p class="text-lg opacity-90">Fundamentos, Métodos e Prática de Classificação de Sítios</p>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 space-y-12">
+
+        <!-- Introdução Teórica -->
+        <section id="teoria-base">
+            <h2 class="text-2xl font-semibold text-emerald-800 border-b-2 border-emerald-200 pb-2 mb-4">1. Conceitos Fundamentais</h2>
+            <div class="space-y-4 leading-relaxed">
+                <p>
+                    A capacidade produtiva indica o potencial de produção de madeira em uma área específica, sendo determinada por uma combinação complexa de características do local (clima, solo, topografia), da espécie cultivada e das práticas silviculturais adotadas. Esse conceito é o pilar central do manejo florestal sustentável, pois permite ao gestor prever a quantidade de madeira disponível para colheita futura.
+                </p>
+                <p>
+                    Para quantificar essa capacidade, utiliza-se frequentemente o conceito de <strong>Índice de Sítio ($S$)</strong>. O índice de sítio é definido como a altura média das árvores dominantes ($H_{dom}$) em uma idade de referência pré-determinada ($I_{ref}$). Sítios com melhores condições ambientais apresentam taxas de crescimento em altura mais aceleradas, resultando em índices de sítio mais elevados.
+                </p>
+                <div class="formula-card">
+                    <p class="font-semibold text-emerald-700 mb-2">Relação Fundamental:</p>
+                    $$S = f(H_{dom}, Idade, I_{ref})$$
+                </div>
+            </div>
+        </section>
+
+        <!-- Seção Interativa: Calculadora -->
+        <section class="interactive-section p-6 border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-700 mb-6 flex items-center">
+                <span class="bg-emerald-100 p-2 rounded-full mr-3 text-emerald-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                </span>
+                Calculadora de Índice de Sítio (Modelo de Schumacher)
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-slate-600">Altura Dominante Atual ($H_{dom}$) em m</label>
+                    <input type="number" id="h_atual" value="15" step="0.1" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-50 focus:ring-emerald-500 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600">Idade Atual (anos)</label>
+                    <input type="number" id="idade_atual" value="4" step="0.1" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-50 focus:ring-emerald-500 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600">Idade de Referência ($I_{ref}$)</label>
+                    <input type="number" id="idade_ref" value="7" step="1" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2 bg-slate-50 focus:ring-emerald-500 border">
+                </div>
+            </div>
+
+            <div class="mt-8 bg-emerald-50 p-4 rounded-lg flex flex-col items-center">
+                <span class="text-emerald-700 font-medium uppercase tracking-wider text-sm">Resultado: Índice de Sítio ($S$)</span>
+                <span id="resultado_s" class="text-4xl font-black text-emerald-600 mt-1">24.5 m</span>
+            </div>
+            
+            <p class="text-xs text-slate-400 mt-4 italic text-center">Baseado no modelo linearizado: $\ln(H) = \beta_0 + \beta_1 \cdot \left(\frac{1}{Idade}\right)$</p>
+        </section>
+
+        <!-- Visualização Gráfica -->
+        <section>
+            <h2 class="text-2xl font-semibold text-emerald-800 border-b-2 border-emerald-200 pb-2 mb-6">2. Curvas de Crescimento e Classes de Sítio</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <p>
+                        A classificação de sítios envolve a construção de um feixe de curvas que representam diferentes níveis de produtividade. Povoamentos que seguem a mesma curva pertencem à mesma <strong>Classe de Sítio</strong>.
+                    </p>
+                    <p>
+                        Existem três métodos principais para a construção dessas curvas, conforme discutido no material:
+                    </p>
+                    <ul class="list-disc ml-5 space-y-2 text-slate-700">
+                        <li><strong>Método da Curva Guia:</strong> Assume que a forma da curva de crescimento é a mesma para todos os sítios (anamorfismo).</li>
+                        <li><strong>Método da Equação de Diferença:</strong> Projeta a altura futura diretamente a partir da altura e idade atuais, sem estimar parâmetros fixos.</li>
+                        <li><strong>Método de Predição de Parâmetros:</strong> Permite que os coeficientes do modelo ($\beta_0$ e $\beta_1$) variem em função de características do local.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-4 rounded shadow border border-slate-100">
+                    <canvas id="siteChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quiz de Fixação -->
+        <section class="interactive-section p-8 border border-emerald-100 bg-emerald-50/30">
+            <h2 class="text-xl font-bold text-emerald-900 mb-6">Desafio de Conhecimento</h2>
+            <div id="quiz-container">
+                <p class="text-lg font-medium text-slate-700 mb-4">Qual variável é considerada o melhor indicador biológico da capacidade produtiva por ser pouco influenciada pela densidade do plantio?</p>
+                <div class="space-y-3">
+                    <button onclick="checkQuiz(false, this)" class="w-full text-left p-3 bg-white border border-slate-300 rounded hover:bg-slate-100 transition-colors">A) Volume total de madeira</button>
+                    <button onclick="checkQuiz(true, this)" class="w-full text-left p-3 bg-white border border-slate-300 rounded hover:bg-slate-100 transition-colors">B) Altura média das árvores dominantes ($H_{dom}$)</button>
+                    <button onclick="checkQuiz(false, this)" class="w-full text-left p-3 bg-white border border-slate-300 rounded hover:bg-slate-100 transition-colors">C) Diâmetro a Altura do Peito (DAP)</button>
+                    <button onclick="checkQuiz(false, this)" class="w-full text-left p-3 bg-white border border-slate-300 rounded hover:bg-slate-100 transition-colors">D) Área basal do povoamento</button>
+                </div>
+                <div id="quiz-feedback" class="mt-4 hidden p-3 rounded text-sm font-medium"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 py-8 px-6 text-center text-sm">
+        <p>Conteúdo baseado no roteiro "Aula 07 - Capacidade Produtiva"</p>
+        <p class="mt-2">&copy; 2024 - Guia de Estudos de Mensuração Florestal</p>
+    </footer>
+
+    <script>
+        // Lógica da Calculadora (Schumacher)
+        // b1 genérico para fins de exemplo acadêmico
+        const B1 = -4.5;
+
+        function updateS() {
+            const h_atual = parseFloat(document.getElementById('h_atual').value);
+            const idade_atual = parseFloat(document.getElementById('idade_atual').value);
+            const idade_ref = parseFloat(document.getElementById('idade_ref').value);
+
+            if (h_atual > 0 && idade_atual > 0 && idade_ref > 0) {
+                const s = h_atual * Math.exp(B1 * (1/idade_ref - 1/idade_atual));
+                document.getElementById('resultado_s').innerText = s.toFixed(1) + " m";
+            } else {
+                document.getElementById('resultado_s').innerText = "---";
+            }
+        }
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', updateS);
+        });
+
+        // Inicialização do Gráfico
+        const ctx = document.getElementById('siteChart').getContext('2d');
+        
+        function generateGrowthData(s_val) {
+            const labels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const data = labels.map(age => {
+                // H = S * exp(B1 * (1/age - 1/7))
+                return s_val * Math.exp(B1 * (1/age - 1/7));
+            });
+            return data;
+        }
+
+        const siteChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                datasets: [
+                    {
+                        label: 'Sítio I (S=28)',
+                        data: generateGrowthData(28),
+                        borderColor: '#10b981',
+                        borderWidth: 3,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Sítio II (S=22)',
+                        data: generateGrowthData(22),
+                        borderColor: '#3b82f6',
+                        borderWidth: 2,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Sítio III (S=16)',
+                        data: generateGrowthData(16),
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Modelagem de Crescimento em Altura Dominante' },
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: { 
+                        title: { display: true, text: 'Altura Dominante (m)' },
+                        min: 0
+                    },
+                    x: { title: { display: true, text: 'Idade (anos)' } }
+                }
+            }
+        });
+
+        // Lógica do Quiz
+        function checkQuiz(correct, element) {
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            
+            if (correct) {
+                feedback.innerText = "Correto! A altura dominante é estável em relação a diferentes densidades (espaçamentos e desbastes), sendo por isso o indicador biológico mais confiável para a produtividade de um sítio.";
+                feedback.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                feedback.innerText = "Incorreto. Variáveis como volume e DAP são fortemente afetadas pela competição entre as árvores e pelo regime de manejo.";
+                feedback.classList.add('bg-red-100', 'text-red-700');
+            }
+            feedback.classList.remove('hidden');
+        }
+
+        // Executar cálculo inicial
+        window.onload = updateS;
+    </script>
+</body>
+</html>
